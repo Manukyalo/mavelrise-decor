@@ -42,6 +42,7 @@ export function HeroRoomTransformation({
     const glow = lampGlowRef.current;
     const ambient = ambientRef.current;
 
+    // Guard: if refs not ready, still update step state so CSS fallback renders correctly
     if (!floor || !walls || !marble || !lamp || !glow) return;
 
     if (step === 1) {
@@ -148,8 +149,9 @@ export function HeroRoomTransformation({
       {/* Warm ambient overlay — grows with lamp stages */}
       <div
         ref={ambientRef}
-        className="absolute inset-0 pointer-events-none opacity-0 z-0"
+        className="absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000"
         style={{
+          opacity: currentStep >= 4 ? 1 : 0,
           background:
             "radial-gradient(ellipse 60% 50% at 50% 30%, rgba(200,161,90,0.18) 0%, transparent 70%)",
         }}
@@ -167,7 +169,6 @@ export function HeroRoomTransformation({
                 : "radial-gradient(ellipse 40% 30% at 50% 50%, rgba(255,255,255,0.03) 0%, #0B1B33 85%)",
         }}
       />
-
       {/* ── TOP HEADER ───────────────────────────────────────────────── */}
       <div className="relative z-20 container mx-auto px-4 md:px-8 pt-28 sm:pt-32 pb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="max-w-2xl space-y-3">
@@ -302,10 +303,11 @@ export function HeroRoomTransformation({
           {/* ── LAYER 2: SPC FRENCH OAK FLOOR PLANKS ── */}
           <div
             ref={floorPlanksRef}
-            className="absolute inset-x-0 bottom-0 z-20 opacity-0"
+            className="absolute inset-x-0 bottom-0 z-20 transition-all duration-700"
             style={{
               height: "32%",
-              transform: "translateY(60px)",
+              opacity: currentStep >= 2 ? 1 : 0,
+              transform: currentStep >= 2 ? "translateY(0px)" : "translateY(60px)",
             }}
           >
             <div
@@ -369,11 +371,12 @@ export function HeroRoomTransformation({
           {/* ── LAYER 3A: LEFT WALL — FLUTED ACOUSTIC TIMBER SLATS ── */}
           <div
             ref={wallPanelsRef}
-            className="absolute left-0 top-0 z-30 opacity-0"
+            className="absolute left-0 top-0 z-30 transition-all duration-700"
             style={{
               width: "22%",
               bottom: "30%",
-              transform: "translateX(-80px)",
+              opacity: currentStep >= 3 ? 1 : 0,
+              transform: currentStep >= 3 ? "translateX(0px)" : "translateX(-80px)",
             }}
           >
             <div
@@ -414,11 +417,12 @@ export function HeroRoomTransformation({
           {/* ── LAYER 3B: RIGHT WALL — MONOLITHIC UV MARBLE SHEET ── */}
           <div
             ref={marbleSlabRef}
-            className="absolute right-0 top-0 z-30 opacity-0"
+            className="absolute right-0 top-0 z-30 transition-all duration-700"
             style={{
               width: "22%",
               bottom: "30%",
-              transform: "translateX(80px)",
+              opacity: currentStep >= 3 ? 1 : 0,
+              transform: currentStep >= 3 ? "translateX(0px)" : "translateX(80px)",
             }}
           >
             <div
@@ -482,8 +486,11 @@ export function HeroRoomTransformation({
           {/* ── LAYER 4: PENDANT LAMP + WARM GLOW ── */}
           <div
             ref={lampFixtureRef}
-            className="absolute left-1/2 top-0 z-40 pointer-events-none opacity-0"
-            style={{ transform: "translate(-50%, -50px)" }}
+            className="absolute left-1/2 top-0 z-40 pointer-events-none transition-all duration-700"
+            style={{
+              transform: currentStep >= 4 ? "translate(-50%, 0px)" : "translate(-50%, -50px)",
+              opacity: currentStep >= 4 ? 1 : 0,
+            }}
           >
             <div className="flex flex-col items-center">
               {/* Cord */}
@@ -521,7 +528,7 @@ export function HeroRoomTransformation({
               {/* Warm cone light spread */}
               <div
                 ref={lampGlowRef}
-                className="pointer-events-none opacity-0"
+                className="pointer-events-none transition-all duration-900"
                 style={{
                   marginTop: -8,
                   width: "clamp(200px, 40vw, 440px)",
@@ -530,6 +537,8 @@ export function HeroRoomTransformation({
                   background:
                     "radial-gradient(ellipse at top, rgba(255,220,100,0.35) 0%, rgba(200,161,90,0.2) 35%, transparent 70%)",
                   filter: "blur(28px)",
+                  opacity: currentStep >= 4 ? 0.9 : 0,
+                  transform: currentStep >= 4 ? "scale(1.1)" : "scale(0.4)",
                 }}
               />
             </div>

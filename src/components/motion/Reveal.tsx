@@ -44,28 +44,47 @@ export function Reveal({
     if (direction === "left") x = distance;
     if (direction === "right") x = -distance;
 
+    const isAboveFold =
+      typeof window !== "undefined" &&
+      element.getBoundingClientRect().top < window.innerHeight * 0.95;
+
     const ctx = gsap.context(() => {
-      gsap.fromTo(
-        element,
-        {
-          opacity: 0,
-          x,
-          y,
-        },
-        {
-          opacity: 1,
-          x: 0,
-          y: 0,
-          duration,
-          delay,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: element,
-            start: `top ${threshold * 100}%`,
-            toggleActions: "play none none none",
+      if (isAboveFold) {
+        gsap.fromTo(
+          element,
+          { opacity: 0, y: Math.min(y, 16) },
+          {
+            opacity: 1,
+            x: 0,
+            y: 0,
+            duration: 0.6,
+            delay: Math.min(delay, 0.2),
+            ease: "power2.out",
+          }
+        );
+      } else {
+        gsap.fromTo(
+          element,
+          {
+            opacity: 0,
+            x,
+            y,
           },
-        }
-      );
+          {
+            opacity: 1,
+            x: 0,
+            y: 0,
+            duration,
+            delay,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: element,
+              start: `top ${threshold * 100}%`,
+              toggleActions: "play none none none",
+            },
+          }
+        );
+      }
     }, elementRef);
 
     return () => ctx.revert();

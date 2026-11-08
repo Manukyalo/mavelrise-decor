@@ -30,7 +30,7 @@ export function HeroRoomTransformation({
   const lampGlowRef = useRef<HTMLDivElement>(null);
   const ambientRef = useRef<HTMLDivElement>(null);
 
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(5);
   const tilt = useTilt(5);
 
   const setStepState = useCallback((step: number) => {

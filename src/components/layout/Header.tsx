@@ -49,22 +49,22 @@ export function Header() {
         )}
       >
         <div className="container mx-auto flex items-center justify-between">
-          {/* Brand Logo & MRD Mark */}
+          {/* Brand Logo & MRD Mark (Supplied Logo with Signature Orange & Green Accents) */}
           <Link
             href="/"
             className="group flex items-center gap-3.5 focus:outline-none"
             aria-label="MarvelRise Decor Homepage"
           >
             {/* Precision Architectural Mark */}
-            <div className="relative w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-sm bg-brand-black-elevated border border-white/15 transition-all duration-300 group-hover:border-brand-orange/60">
+            <div className="relative w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-sm bg-brand-navy-elevated border border-brand-gold/30 transition-all duration-300 group-hover:border-brand-gold">
               <svg
                 viewBox="0 0 40 40"
-                className="w-6 h-6 fill-none stroke-current text-brand-white transition-colors duration-300 group-hover:text-brand-orange"
+                className="w-6 h-6 fill-none stroke-current text-brand-ivory transition-colors duration-300 group-hover:text-brand-gold"
               >
                 <path
                   d="M 20 4 L 36 20 L 20 36 L 4 20 Z"
                   strokeWidth="1.2"
-                  className="stroke-brand-black-muted group-hover:stroke-brand-orange/40 transition-colors"
+                  className="stroke-brand-gold/40 group-hover:stroke-brand-gold transition-colors"
                 />
                 <path
                   d="M 11 26 L 11 14 L 16 21 L 20 14 L 24 21 L 29 14 L 29 26"
@@ -72,21 +72,23 @@ export function Header() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
-                <circle cx="20" cy="14" r="1.5" className="fill-brand-orange stroke-none" />
+                {/* Official Logo Orange Dot */}
+                <circle cx="20" cy="14" r="1.5" className="fill-[#F25C05] stroke-none" />
               </svg>
-              <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-brand-green border border-brand-black" />
+              {/* Official Logo Green Badge */}
+              <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#0F4C3A] border border-brand-navy" />
             </div>
 
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
-                <span className="font-display text-lg md:text-xl font-normal tracking-[0.18em] text-brand-white uppercase leading-none">
+                <span className="font-display text-lg md:text-xl font-normal tracking-[0.18em] text-brand-ivory uppercase leading-none">
                   MarvelRise
                 </span>
-                <span className="text-[10px] font-mono px-1 py-0.2 bg-brand-orange/15 text-brand-orange border border-brand-orange/30 rounded-xs">
+                <span className="text-[10px] font-mono px-1 py-0.2 bg-brand-gold/15 text-brand-gold border border-brand-gold/30 rounded-xs font-semibold">
                   MRD
                 </span>
               </div>
-              <span className="text-[9px] md:text-[10px] font-mono tracking-[0.25em] text-brand-sand-300 uppercase leading-none mt-1">
+              <span className="text-[9px] md:text-[10px] font-mono tracking-[0.25em] text-brand-ivory/60 uppercase leading-none mt-1">
                 Decor • Nairobi
               </span>
             </div>
@@ -95,16 +97,16 @@ export function Header() {
           {/* Desktop Navigation Links */}
           <nav
             aria-label="Primary"
-            className="hidden lg:flex items-center gap-8 text-xs font-mono tracking-wider uppercase text-brand-sand-300"
+            className="hidden lg:flex items-center gap-8 text-xs font-mono tracking-wider uppercase text-brand-ivory/80"
           >
             {navLinks.map((item, idx) => (
               <Link
                 key={idx}
                 href={item.href}
-                className="relative py-1 transition-colors duration-200 hover:text-brand-white group"
+                className="relative py-1 transition-colors duration-200 hover:text-brand-gold group"
               >
                 <span>{item.label}</span>
-                <span className="absolute bottom-0 left-0 w-0 h-[1.5px] bg-brand-orange transition-all duration-300 ease-out group-hover:w-full" />
+                <span className="absolute bottom-0 left-0 w-0 h-[1.5px] bg-brand-gold transition-all duration-300 ease-out group-hover:w-full" />
               </Link>
             ))}
           </nav>
@@ -113,7 +115,7 @@ export function Header() {
           <div className="flex items-center gap-3 md:gap-4">
             {/* Language Switcher Pill */}
             <div
-              className="flex items-center rounded-full p-0.5 bg-brand-black-elevated/90 border border-white/10 text-[11px] font-mono tracking-wider"
+              className="flex items-center rounded-full p-0.5 bg-brand-navy-elevated border border-brand-gold/25 text-[11px] font-mono tracking-wider"
               role="radiogroup"
               aria-label="Language selection"
             >
@@ -123,8 +125,8 @@ export function Header() {
                 className={cn(
                   "px-2.5 py-1 rounded-full transition-all duration-300",
                   locale === "en"
-                    ? "bg-brand-white text-brand-black font-semibold shadow-sm"
-                    : "text-brand-sand-300 hover:text-brand-white"
+                    ? "bg-brand-gold text-brand-navy font-bold shadow-sm"
+                    : "text-brand-ivory/70 hover:text-brand-ivory"
                 )}
                 aria-checked={locale === "en"}
                 role="radio"
@@ -137,8 +139,8 @@ export function Header() {
                 className={cn(
                   "px-2.5 py-1 rounded-full transition-all duration-300",
                   locale === "sw"
-                    ? "bg-brand-orange text-brand-white font-semibold shadow-sm"
-                    : "text-brand-sand-300 hover:text-brand-white"
+                    ? "bg-brand-gold text-brand-navy font-bold shadow-sm"
+                    : "text-brand-ivory/70 hover:text-brand-ivory"
                 )}
                 aria-checked={locale === "sw"}
                 role="radio"
@@ -150,7 +152,7 @@ export function Header() {
             {/* Client Portal Link */}
             <Link
               href="/portal"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-sm text-brand-sand-300 hover:text-white border border-white/10 hover:border-white/30 text-xs font-mono uppercase tracking-wider transition-colors"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-sm text-brand-ivory/80 hover:text-brand-gold border border-brand-gold/20 hover:border-brand-gold/50 text-xs font-mono uppercase tracking-wider transition-colors"
             >
               <span>{t("portal")}</span>
             </Link>
@@ -158,7 +160,7 @@ export function Header() {
             {/* Request Quote Button */}
             <a
               href="#contact"
-              className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-sm bg-brand-sand-50/10 hover:bg-brand-orange text-brand-white hover:text-white border border-white/15 hover:border-brand-orange text-xs font-mono uppercase tracking-widest transition-all duration-300 shadow-sm"
+              className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-sm bg-brand-gold hover:bg-brand-gold-hover text-brand-navy font-semibold text-xs font-mono uppercase tracking-widest transition-all duration-300 shadow-lg shadow-brand-gold/20"
             >
               <span>{t("requestQuote")}</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -181,51 +183,51 @@ export function Header() {
       {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 z-40 lg:hidden bg-brand-black/95 backdrop-blur-2xl flex flex-col pt-24 pb-8 px-6 justify-between animate-fadeIn"
+          className="fixed inset-0 z-40 lg:hidden bg-brand-navy-deep/98 backdrop-blur-2xl flex flex-col pt-24 pb-8 px-6 justify-between animate-fadeIn border-t border-brand-gold/20"
           role="dialog"
           aria-modal="true"
         >
           <div className="space-y-6">
-            <div className="flex items-center justify-between pb-4 border-b border-white/10 text-xs font-mono uppercase tracking-widest text-brand-sand-400">
+            <div className="flex items-center justify-between pb-4 border-b border-brand-gold/15 text-xs font-mono uppercase tracking-widest text-brand-gold">
               <span>{brandT("name")}</span>
-              <span className="text-brand-orange">Nairobi</span>
+              <span className="text-brand-gold font-bold">Nairobi</span>
             </div>
 
-            <nav className="flex flex-col gap-4 text-xl font-display uppercase tracking-widest text-brand-white">
+            <nav className="flex flex-col gap-4 text-xl font-display uppercase tracking-widest text-brand-ivory">
               {navLinks.map((item, idx) => (
                 <Link
                   key={idx}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="py-2 border-b border-white/5 hover:text-brand-orange transition-colors flex items-center justify-between"
+                  className="py-2 border-b border-brand-gold/10 hover:text-brand-gold transition-colors flex items-center justify-between"
                 >
                   <span>{item.label}</span>
-                  <ArrowUpRight className="w-4 h-4 text-brand-sand-400" />
+                  <ArrowUpRight className="w-4 h-4 text-brand-gold/60" />
                 </Link>
               ))}
             </nav>
           </div>
 
-          <div className="space-y-4 pt-6 border-t border-white/10">
+          <div className="space-y-4 pt-6 border-t border-brand-gold/15">
             <Link
               href="/portal"
               onClick={() => setMobileMenuOpen(false)}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-sm bg-brand-black border border-white/15 text-brand-sand-200 text-xs font-mono uppercase tracking-widest font-semibold"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-sm bg-brand-navy-elevated border border-brand-gold/25 text-brand-ivory text-xs font-mono uppercase tracking-widest font-semibold"
             >
               <span>{t("portal")}</span>
-              <ArrowUpRight className="w-4 h-4" />
+              <ArrowUpRight className="w-4 h-4 text-brand-gold" />
             </Link>
 
             <a
               href="#contact"
               onClick={() => setMobileMenuOpen(false)}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-sm bg-brand-orange text-brand-white text-xs font-mono uppercase tracking-widest font-semibold"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-sm bg-brand-gold hover:bg-brand-gold-hover text-brand-navy text-xs font-mono uppercase tracking-widest font-bold shadow-lg shadow-brand-gold/20"
             >
               <span>{t("requestQuote")}</span>
               <ArrowUpRight className="w-4 h-4" />
             </a>
 
-            <div className="text-center text-[10px] font-mono tracking-widest text-brand-black-muted uppercase">
+            <div className="text-center text-[10px] font-mono tracking-widest text-brand-gold/60 uppercase">
               Enterprise Road • Nairobi, Kenya
             </div>
           </div>

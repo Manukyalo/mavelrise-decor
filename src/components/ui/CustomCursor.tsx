@@ -92,7 +92,7 @@ export function CustomCursor() {
       {/* Precision Core Dot */}
       <div
         ref={cursorRef}
-        className="fixed top-0 left-0 w-2 h-2 -ml-1 -mt-1 rounded-full bg-brand-orange will-change-transform shadow-[0_0_10px_rgba(242,92,5,0.8)]"
+        className="fixed top-0 left-0 w-2 h-2 -ml-1 -mt-1 rounded-full bg-brand-gold will-change-transform shadow-[0_0_12px_rgba(200,161,90,0.85)]"
       />
 
       {/* Floating Outer Architectural Reticle */}
@@ -100,8 +100,8 @@ export function CustomCursor() {
         ref={ringRef}
         className={`fixed top-0 left-0 -ml-5 -mt-5 rounded-full border will-change-transform transition-all duration-300 ease-luxury ${
           isHovered
-            ? "w-14 h-14 -ml-7 -mt-7 border-brand-orange bg-brand-orange/10 scale-110"
-            : "w-10 h-10 border-white/30"
+            ? "w-14 h-14 -ml-7 -mt-7 border-brand-gold bg-brand-gold/15 scale-110"
+            : "w-10 h-10 border-brand-gold/30"
         }`}
       />
     </div>

@@ -24,40 +24,81 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
+          // =========================================================================
+          // LUXURY IDENTITY TOKENS (Navy & Champagne Gold System)
+          // =========================================================================
+          navy: {
+            DEFAULT: "#0B1B33", // Primary deep luxury navy canvas
+            elevated: "#10223E", // Elevated navy surface
+            card: "#14284B", // Rich navy component cards
+            light: "#1C3765", // Interactive hover navy
+            deep: "#071224", // Deepest navy for footer & heavy contrast
+            border: "rgba(200, 161, 90, 0.2)",
+          },
+          gold: {
+            DEFAULT: "#C8A15A", // Champagne gold - primary accent, rules, key actions
+            hover: "#B68E46", // Burnished gold
+            light: "#E5CCA0", // Delicate champagne highlight
+            subtle: "#D4AF67", // Mid-tone gold
+            glow: "rgba(200, 161, 90, 0.25)",
+            border: "rgba(200, 161, 90, 0.35)",
+          },
+          ivory: {
+            DEFAULT: "#F6F1E7", // Warm ivory - primary display & body text
+            100: "#FAF7F2",
+            200: "#F6F1E7",
+            300: "#E8DFC9",
+            400: "#D2C4A7",
+            500: "#B5A584",
+          },
+          oak: {
+            DEFAULT: "#7D5537", // Warm French oak architectural accent
+            dark: "#4A301D",
+            light: "#A67C52",
+          },
+          charcoal: {
+            DEFAULT: "#091424", // Deep charcoal navy
+            card: "#0E1B30",
+            muted: "#6A7B95",
+          },
+
+          // Official MRD Logo Mark Colors (Preserved strictly within the logo as requested)
           orange: {
-            DEFAULT: "#F25C05", // Vibrant architectural burnt orange
+            DEFAULT: "#F25C05", // Burnt orange mark dot
             hover: "#D84F00",
             light: "#FFF0E6",
             subtle: "#F97316",
             glow: "rgba(242, 92, 5, 0.25)",
           },
           green: {
-            DEFAULT: "#0F4C3A", // Rich Kenyan emerald / heritage green
+            DEFAULT: "#0F4C3A", // Heritage green mark dot
             dark: "#08291F",
             deep: "#051A14",
             light: "#E8F5EE",
             subtle: "#166534",
             glow: "rgba(15, 76, 58, 0.25)",
           },
+
+          // Backward Compatibility Aliases Mapped to the Luxury Navy & Ivory System
           black: {
-            DEFAULT: "#0A0B0D", // Obsidian black
-            elevated: "#121417",
-            card: "#171A1E",
-            border: "#23272E",
-            muted: "#666D77",
+            DEFAULT: "#0B1B33", // Maps to Deep Navy
+            elevated: "#10223E", // Maps to Elevated Navy
+            card: "#14284B", // Maps to Rich Navy
+            border: "rgba(200, 161, 90, 0.2)",
+            muted: "#6A7B95",
           },
           white: "#FFFFFF",
           sand: {
-            50: "#FAF9F5",
-            100: "#F4F1EA",
-            200: "#E8E3D7",
-            300: "#D3CBBA",
-            400: "#B8AC97",
-            500: "#9C8F79",
+            50: "#FAF7F2",
+            100: "#F6F1E7",
+            200: "#E8DFC9",
+            300: "#D2C4A7",
+            400: "#B5A584",
+            500: "#948464",
           },
           brass: {
-            DEFAULT: "#C5A059",
-            light: "#E1C68E",
+            DEFAULT: "#C8A15A", // Maps to Champagne Gold
+            light: "#E5CCA0",
             dark: "#8F6E32",
           },
         },
@@ -96,4 +137,3 @@ const config: Config = {
 };
 
 export default config;
-

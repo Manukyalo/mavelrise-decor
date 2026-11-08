@@ -197,3 +197,4 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
     return FALLBACK_PROJECTS.find((p) => p.slug === slug) || null;
   }
 }
+

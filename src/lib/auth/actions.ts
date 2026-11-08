@@ -7,6 +7,7 @@ import { loginSchema, registerSchema, resetPasswordSchema } from "./schemas";
 
 export interface AuthActionResult {
   success?: boolean;
+  message?: string;
   error?: string;
   fieldErrors?: Record<string, string[]>;
 }

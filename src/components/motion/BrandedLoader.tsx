@@ -80,16 +80,16 @@ export function BrandedLoader({ onComplete }: BrandedLoaderProps) {
     >
       <div
         ref={curtainRef}
-        className="absolute inset-0 bg-brand-black flex flex-col items-center justify-center border-b border-brand-orange/20"
+        className="absolute inset-0 bg-brand-navy-deep flex flex-col items-center justify-center border-b border-brand-gold/30"
       >
         {/* Subtle architectural grid coordinates */}
-        <div className="absolute top-8 left-8 text-[11px] font-mono tracking-widest text-brand-black-muted uppercase flex items-center gap-3">
-          <span className="w-2 h-2 rounded-full bg-brand-orange animate-pulse" />
+        <div className="absolute top-8 left-8 text-[11px] font-mono tracking-widest text-brand-gold uppercase flex items-center gap-3">
+          <span className="w-2 h-2 rounded-full bg-brand-gold animate-pulse" />
           <span>MARVELRISE STUDIO • 01°17′S 36°49′E</span>
         </div>
 
         <div className="flex flex-col items-center text-center px-6">
-          {/* Architectural MRD Monogram SVG */}
+          {/* Architectural MRD Monogram SVG (Logo as supplied with signature orange & green focal accents) */}
           <svg
             ref={svgRef}
             className="w-28 h-28 md:w-36 md:h-36 overflow-visible mb-6"
@@ -97,11 +97,11 @@ export function BrandedLoader({ onComplete }: BrandedLoaderProps) {
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
-            {/* Outer Architectural Precision Diamond */}
+            {/* Outer Architectural Precision Diamond in Champagne Gold */}
             <path
               className="mrd-path"
               d="M 80 10 L 150 80 L 80 150 L 10 80 Z"
-              stroke="#23272E"
+              stroke="#C8A15A"
               strokeWidth="1.5"
               strokeDasharray="400"
             />
@@ -109,7 +109,7 @@ export function BrandedLoader({ onComplete }: BrandedLoaderProps) {
             <path
               className="mrd-path"
               d="M 80 24 L 136 80 L 80 136 L 24 80 Z"
-              stroke="rgba(255, 255, 255, 0.15)"
+              stroke="rgba(200, 161, 90, 0.3)"
               strokeWidth="1"
               strokeDasharray="400"
             />
@@ -118,34 +118,34 @@ export function BrandedLoader({ onComplete }: BrandedLoaderProps) {
             <path
               className="mrd-path"
               d="M 44 104 L 44 56 L 62 82 L 80 56 L 98 82 L 116 56 L 116 104"
-              stroke="#FAF9F5"
+              stroke="#F6F1E7"
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeDasharray="400"
             />
 
-            {/* Precision Focal Accents */}
+            {/* Official Logo Accents (Supplied: Orange & Green) */}
             <circle className="mrd-accent" cx="80" cy="56" r="3.5" fill="#F25C05" />
             <circle className="mrd-accent" cx="44" cy="56" r="2.5" fill="#0F4C3A" />
             <circle className="mrd-accent" cx="116" cy="56" r="2.5" fill="#0F4C3A" />
-            <circle className="mrd-accent" cx="80" cy="10" r="2" fill="#FAF9F5" />
-            <circle className="mrd-accent" cx="80" cy="150" r="2" fill="#FAF9F5" />
+            <circle className="mrd-accent" cx="80" cy="10" r="2" fill="#C8A15A" />
+            <circle className="mrd-accent" cx="80" cy="150" r="2" fill="#C8A15A" />
           </svg>
 
           {/* Brand Typography */}
           <div ref={textRef} className="space-y-1.5">
-            <h1 className="font-display text-2xl md:text-3xl tracking-[0.2em] font-light text-brand-white uppercase">
+            <h1 className="font-display text-2xl md:text-3xl tracking-[0.2em] font-light text-brand-ivory uppercase">
               MarvelRise
             </h1>
-            <p className="text-[10px] md:text-xs font-mono tracking-[0.35em] text-brand-sand-300 uppercase">
+            <p className="text-[10px] md:text-xs font-mono tracking-[0.35em] text-brand-gold uppercase">
               Decor & Architectural Ceilings
             </p>
           </div>
         </div>
 
         {/* Bottom subtle status */}
-        <div className="absolute bottom-8 right-8 text-[10px] font-mono tracking-widest text-brand-black-muted uppercase">
+        <div className="absolute bottom-8 right-8 text-[10px] font-mono tracking-widest text-brand-gold/60 uppercase">
           Nairobi • Kenya
         </div>
       </div>

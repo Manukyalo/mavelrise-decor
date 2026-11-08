@@ -50,7 +50,7 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} className={`${cormorant.variable} ${plusJakarta.variable}`}>
-      <body className="bg-brand-black text-brand-sand-50 antialiased selection:bg-brand-orange selection:text-brand-black">
+      <body className="bg-brand-navy text-brand-ivory antialiased selection:bg-brand-gold selection:text-brand-navy">
         <NextIntlClientProvider locale={locale} messages={messages}>
           <SmoothScrollProvider>
             {/* Custom Interactive Desktop Cursor */}

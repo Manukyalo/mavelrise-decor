@@ -12,56 +12,59 @@ export default async function HomePage() {
   const t = await getTranslations();
 
   return (
-    <div className="relative w-full overflow-hidden bg-brand-black text-brand-sand-50">
+    <div className="relative w-full overflow-hidden bg-brand-navy text-brand-ivory">
       {/* =========================================================================
-          HERO: CINEMATIC ROOM TRANSFORMATION TIED TO SCROLL
-          (Planks click into place, wall panels slide in, lampshade lights up)
+          HERO: CINEMATIC ROOM TRANSFORMATION TIED TO SCROLL & INTERACTIVE STAGES
+          (French Oak planks click into place, wall panels slide in, lampshade lights up)
       ========================================================================= */}
       <HeroRoomTransformation
         headlineLine1="TRANSFORM ORDINARY SPACES"
         headlineLine2="INTO ARCHITECTURAL SANCTUARIES"
         ctaText="Design your room"
-        subText="Scroll to witness raw space transformed in real time: acoustic floor planks snap into place, fluted timber walls lock in, and warm ambient illumination bathes the room."
+        subText="Witness raw spatial concrete transformed in real time: acoustic French oak floor planks snap into place, fluted timber walls lock in, and warm champagne illumination bathes the room."
       />
 
+      {/* Thin Champagne Gold Rule */}
+      <div className="gold-rule w-full" />
+
       {/* =========================================================================
-          METRICS & TRUST BENCHMARK COUNTERS
+          METRICS & TRUST BENCHMARK COUNTERS (Luxury Navy & Gold Cards)
       ========================================================================= */}
-      <section className="py-14 border-b border-white/10 bg-brand-black-elevated/70">
+      <section className="py-14 border-b border-brand-gold/15 bg-brand-navy-deep">
         <div className="container mx-auto px-4 md:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            <Reveal direction="up" delay={0.05} className="p-6 rounded-sm bg-brand-black border border-white/10 hover:border-brand-orange/40 transition-colors">
-              <div className="text-3xl sm:text-4xl md:text-5xl font-display font-light text-brand-white mb-1">
+            <Reveal direction="up" delay={0.05} className="p-6 rounded-sm bg-brand-navy-card border border-brand-gold/20 hover:border-brand-gold/50 transition-all duration-300 shadow-xl">
+              <div className="text-3xl sm:text-4xl md:text-5xl font-display font-light text-brand-ivory mb-1">
                 <AnimatedCounter value={380} suffix="+" duration={2.2} />
               </div>
-              <div className="text-xs font-mono uppercase tracking-wider text-brand-sand-400">
+              <div className="text-xs font-mono uppercase tracking-wider text-brand-gold">
                 {t("stats.stat1Label")}
               </div>
             </Reveal>
 
-            <Reveal direction="up" delay={0.15} className="p-6 rounded-sm bg-brand-black border border-white/10 hover:border-brand-green/40 transition-colors">
-              <div className="text-3xl sm:text-4xl md:text-5xl font-display font-light text-brand-white mb-1">
+            <Reveal direction="up" delay={0.15} className="p-6 rounded-sm bg-brand-navy-card border border-brand-gold/20 hover:border-brand-gold/50 transition-all duration-300 shadow-xl">
+              <div className="text-3xl sm:text-4xl md:text-5xl font-display font-light text-brand-ivory mb-1">
                 <AnimatedCounter value={14} suffix=" YRS" duration={2.0} />
               </div>
-              <div className="text-xs font-mono uppercase tracking-wider text-brand-sand-400">
+              <div className="text-xs font-mono uppercase tracking-wider text-brand-gold">
                 {t("stats.stat2Label")}
               </div>
             </Reveal>
 
-            <Reveal direction="up" delay={0.25} className="p-6 rounded-sm bg-brand-black border border-white/10 hover:border-brand-orange/40 transition-colors">
-              <div className="text-3xl sm:text-4xl md:text-5xl font-display font-light text-brand-white mb-1">
+            <Reveal direction="up" delay={0.25} className="p-6 rounded-sm bg-brand-navy-card border border-brand-gold/20 hover:border-brand-gold/50 transition-all duration-300 shadow-xl">
+              <div className="text-3xl sm:text-4xl md:text-5xl font-display font-light text-brand-ivory mb-1">
                 <AnimatedCounter value={99.4} decimals={1} suffix="%" duration={2.4} />
               </div>
-              <div className="text-xs font-mono uppercase tracking-wider text-brand-sand-400">
+              <div className="text-xs font-mono uppercase tracking-wider text-brand-gold">
                 {t("stats.stat3Label")}
               </div>
             </Reveal>
 
-            <Reveal direction="up" delay={0.35} className="p-6 rounded-sm bg-brand-black border border-white/10 hover:border-brand-green/40 transition-colors">
-              <div className="text-3xl sm:text-4xl md:text-5xl font-display font-light text-brand-white mb-1">
+            <Reveal direction="up" delay={0.35} className="p-6 rounded-sm bg-brand-navy-card border border-brand-gold/20 hover:border-brand-gold/50 transition-all duration-300 shadow-xl">
+              <div className="text-3xl sm:text-4xl md:text-5xl font-display font-light text-brand-ivory mb-1">
                 <AnimatedCounter value={48} suffix=" HRS" duration={1.8} />
               </div>
-              <div className="text-xs font-mono uppercase tracking-wider text-brand-sand-400">
+              <div className="text-xs font-mono uppercase tracking-wider text-brand-gold">
                 {t("stats.stat4Label")}
               </div>
             </Reveal>
@@ -75,15 +78,24 @@ export default async function HomePage() {
       ========================================================================= */}
       <ProductLinesShowcase />
 
+      {/* Thin Champagne Gold Rule */}
+      <div className="gold-rule w-full" />
+
       {/* =========================================================================
           WHY CHOOSE US: SIX POINTS FROM THE MARVELRISE BROCHURE
       ========================================================================= */}
       <WhyChooseUs />
 
+      {/* Thin Champagne Gold Rule */}
+      <div className="gold-rule w-full" />
+
       {/* =========================================================================
           HOW IT WORKS IN 3 STEPS: MEASURE, PICK, GET YOUR QUOTE
       ========================================================================= */}
       <HowItWorks />
+
+      {/* Thin Champagne Gold Rule */}
+      <div className="gold-rule w-full" />
 
       {/* =========================================================================
           CLOSING INTERACTIVE ROOM PLANNER & DIRECT WHATSAPP CONCIERGE

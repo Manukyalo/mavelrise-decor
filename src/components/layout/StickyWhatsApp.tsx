@@ -24,7 +24,7 @@ export function StickyWhatsApp() {
       {/* Expanded Luxury Preview Card on Hover / Desktop */}
       <div
         className={cn(
-          "hidden sm:flex flex-col gap-1 p-3.5 rounded-lg glass-panel border border-brand-green/30 shadow-2xl transition-all duration-300 transform origin-bottom-right",
+          "hidden sm:flex flex-col gap-1 p-3.5 rounded-lg glass-panel border border-brand-gold/30 shadow-2xl transition-all duration-300 transform origin-bottom-right",
           isHovered
             ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
             : "opacity-0 scale-95 translate-y-2 pointer-events-none"
@@ -32,21 +32,21 @@ export function StickyWhatsApp() {
       >
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-gold" />
           </span>
-          <span className="text-[11px] font-mono tracking-wider text-brand-sand-200 uppercase font-medium">
+          <span className="text-[11px] font-mono tracking-wider text-brand-ivory uppercase font-bold">
             {t("status")}
           </span>
         </div>
-        <p className="text-xs text-brand-sand-300 font-sans max-w-[210px] leading-snug">
+        <p className="text-xs text-brand-ivory/70 font-sans max-w-[210px] leading-snug">
           Connect directly with our architectural finishes estimator.
         </p>
         <a
           href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-1 text-[11px] font-mono tracking-wider text-brand-orange hover:text-white uppercase flex items-center gap-1 transition-colors"
+          className="mt-1 text-[11px] font-mono tracking-wider text-brand-gold hover:text-brand-gold-light uppercase flex items-center gap-1 transition-colors font-bold"
         >
           <span>{t("chatAction")}</span>
           <ArrowUpRight className="w-3 h-3" />

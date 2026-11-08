@@ -34,20 +34,20 @@ export function HowItWorks() {
   ];
 
   return (
-    <section id="how-it-works" className="py-24 bg-brand-black-elevated text-brand-sand-50 border-b border-white/10 relative overflow-hidden">
+    <section id="how-it-works" className="py-24 bg-brand-navy text-brand-ivory border-b border-brand-gold/15 relative overflow-hidden">
       <div className="container mx-auto px-4 md:px-8 relative z-10 space-y-16">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="max-w-2xl space-y-3">
-            <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-brand-orange">
-              <span className="w-2 h-2 rounded-full bg-brand-orange" />
+            <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-brand-gold font-bold">
+              <span className="w-2 h-2 rounded-full bg-brand-gold" />
               <span>Streamlined Three-Phase Execution</span>
             </div>
-            <h2 className="font-display text-3xl sm:text-5xl uppercase font-light text-brand-white leading-tight">
-              From Raw Space to <span className="italic text-brand-orange">Finished Masterpiece</span>
+            <h2 className="font-display text-3xl sm:text-5xl uppercase font-light text-brand-ivory leading-tight">
+              From Raw Space to <span className="italic text-brand-gold">Finished Masterpiece</span>
             </h2>
           </div>
-          <p className="text-xs font-mono uppercase tracking-widest text-brand-sand-400">
+          <p className="text-xs font-mono uppercase tracking-widest text-brand-gold/70">
             No Surprises • Zero Delays
           </p>
         </div>
@@ -62,34 +62,34 @@ export function HowItWorks() {
               delay={idx * 0.12}
               className="h-full"
             >
-              <div className="p-8 rounded-sm bg-brand-black border border-white/10 hover:border-brand-orange/40 flex flex-col justify-between h-full transition-all duration-300 relative group">
+              <div className="p-8 rounded-sm bg-brand-navy-card border border-brand-gold/20 hover:border-brand-gold/60 flex flex-col justify-between h-full transition-all duration-300 relative group shadow-xl">
                 <div className="space-y-6">
                   {/* Step Header */}
                   <div className="flex items-center justify-between">
-                    <span className="font-display text-4xl text-brand-orange/60 group-hover:text-brand-orange transition-colors">
+                    <span className="font-display text-4xl text-brand-gold group-hover:scale-105 transition-transform">
                       {st.num}
                     </span>
-                    <span className="text-[10px] font-mono tracking-widest text-brand-sand-400 bg-white/5 px-2.5 py-1 rounded-full uppercase">
+                    <span className="text-[10px] font-mono tracking-widest text-brand-gold bg-brand-gold/10 border border-brand-gold/25 px-2.5 py-1 rounded-full uppercase font-medium">
                       {st.tag}
                     </span>
                   </div>
 
                   <div className="space-y-2">
-                    <span className="text-xs font-mono tracking-widest text-brand-sand-400 uppercase block">
+                    <span className="text-xs font-mono tracking-widest text-brand-gold/70 uppercase block font-semibold">
                       STEP {st.num} • {st.action}
                     </span>
-                    <h3 className="font-display text-2xl uppercase text-brand-white">
+                    <h3 className="font-display text-2xl uppercase text-brand-ivory">
                       {st.title}
                     </h3>
-                    <p className="text-xs sm:text-sm font-sans text-brand-sand-400 leading-relaxed">
+                    <p className="text-xs sm:text-sm font-sans text-brand-ivory/70 leading-relaxed">
                       {st.desc}
                     </p>
                   </div>
                 </div>
 
-                <div className="pt-6 mt-6 border-t border-white/5 flex items-center justify-between text-xs font-mono text-brand-sand-300">
+                <div className="pt-6 mt-6 border-t border-brand-gold/15 flex items-center justify-between text-xs font-mono text-brand-gold/80">
                   <span className="uppercase text-[11px]">Proceed to Step {idx < 2 ? `0${idx + 2}` : "Handover"}</span>
-                  <ArrowRight className="w-4 h-4 text-brand-orange group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 text-brand-gold group-hover:translate-x-1.5 transition-transform" />
                 </div>
               </div>
             </Reveal>
@@ -99,4 +99,3 @@ export function HowItWorks() {
     </section>
   );
 }
-

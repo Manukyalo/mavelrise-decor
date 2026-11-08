@@ -125,3 +125,4 @@ export async function signOutAction(locale: string = "en") {
   revalidatePath("/", "layout");
   redirect(`/${locale}/auth/login`);
 }
+

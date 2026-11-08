@@ -23,3 +23,4 @@ export async function GET(request: Request) {
     new URL(`/en/auth/login?error=${encodeURIComponent("Verification link expired or invalid")}`, requestUrl.origin)
   );
 }
+

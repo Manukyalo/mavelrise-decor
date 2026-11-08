@@ -8,6 +8,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { StickyWhatsApp } from "@/components/layout/StickyWhatsApp";
 import { PageTransition } from "@/components/motion/PageTransition";
+import { CustomCursor } from "@/components/ui/CustomCursor";
 import "../globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -52,6 +53,9 @@ export default async function LocaleLayout({
       <body className="bg-brand-black text-brand-sand-50 antialiased selection:bg-brand-orange selection:text-brand-black">
         <NextIntlClientProvider locale={locale} messages={messages}>
           <SmoothScrollProvider>
+            {/* Custom Interactive Desktop Cursor */}
+            <CustomCursor />
+
             {/* Branded Loader with MRD Animated Mark */}
             <BrandedLoader />
 

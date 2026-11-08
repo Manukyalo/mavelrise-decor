@@ -76,9 +76,9 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#projects" className="hover:text-brand-orange transition-colors">
+                <Link href="/projects" className="hover:text-brand-orange transition-colors">
                   {navT("projects")}
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#custom" className="hover:text-brand-orange transition-colors">

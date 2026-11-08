@@ -2,7 +2,6 @@ import React from "react";
 import { getTranslations } from "next-intl/server";
 import { HeroRoomTransformation } from "@/components/home/HeroRoomTransformation";
 import { ProductLinesShowcase } from "@/components/home/ProductLinesShowcase";
-import { SpcExplodedView } from "@/components/home/SpcExplodedView";
 import { WhyChooseUs } from "@/components/home/WhyChooseUs";
 import { HowItWorks } from "@/components/home/HowItWorks";
 import { ClosingCta } from "@/components/home/ClosingCta";
@@ -72,13 +71,9 @@ export default async function HomePage() {
 
       {/* =========================================================================
           THE FIVE PRODUCT LINES (BESPOKE ANIMATED REVEALS & SPECIFICATIONS)
+          (Includes interactive 5-layer SPC anatomy in Discipline 01)
       ========================================================================= */}
       <ProductLinesShowcase />
-
-      {/* =========================================================================
-          PIN-AND-SCRUB SPC FLOORING EXPLODED ANATOMICAL SCENE
-      ========================================================================= */}
-      <SpcExplodedView />
 
       {/* =========================================================================
           WHY CHOOSE US: SIX POINTS FROM THE MARVELRISE BROCHURE

@@ -48,8 +48,8 @@ export function WhyChooseUs() {
     },
     {
       num: "05",
-      title: "48-Hour Rapid 3D Estimations",
-      desc: "Send your architectural plans or site dimensions and receive an itemized bill of quantities and material schedule within two business days.",
+      title: "Dedicated Lead Finisher Supervision",
+      desc: "Every residence or boardroom project is assigned a dedicated senior architectural finishes supervisor to oversee daily installation tolerances and milestone sign-offs.",
       icon: Clock,
       color: "text-amber-400",
       borderHover: "hover:border-amber-400/50",

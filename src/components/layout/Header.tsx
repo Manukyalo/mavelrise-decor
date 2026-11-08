@@ -30,12 +30,12 @@ export function Header() {
   };
 
   const navLinks = [
-    { label: t("collections"), href: "#collections" },
-    { label: t("ceilings"), href: "#ceilings" },
-    { label: t("wallPanels"), href: "#wall-panels" },
-    { label: t("projects"), href: "#projects" },
-    { label: t("about"), href: "#studio" },
-    { label: t("contact"), href: "#contact" },
+    { label: t("collections"), href: "/#product-lines" },
+    { label: t("projects"), href: "/projects" },
+    { label: t("ceilings"), href: "/#product-lines" },
+    { label: t("wallPanels"), href: "/#product-lines" },
+    { label: t("about"), href: "/#how-it-works" },
+    { label: t("contact"), href: "/#room-planner" },
   ];
 
   return (
@@ -98,14 +98,14 @@ export function Header() {
             className="hidden lg:flex items-center gap-8 text-xs font-mono tracking-wider uppercase text-brand-sand-300"
           >
             {navLinks.map((item, idx) => (
-              <a
+              <Link
                 key={idx}
                 href={item.href}
                 className="relative py-1 transition-colors duration-200 hover:text-brand-white group"
               >
                 <span>{item.label}</span>
                 <span className="absolute bottom-0 left-0 w-0 h-[1.5px] bg-brand-orange transition-all duration-300 ease-out group-hover:w-full" />
-              </a>
+              </Link>
             ))}
           </nav>
 
@@ -193,7 +193,7 @@ export function Header() {
 
             <nav className="flex flex-col gap-4 text-xl font-display uppercase tracking-widest text-brand-white">
               {navLinks.map((item, idx) => (
-                <a
+                <Link
                   key={idx}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
@@ -201,7 +201,7 @@ export function Header() {
                 >
                   <span>{item.label}</span>
                   <ArrowUpRight className="w-4 h-4 text-brand-sand-400" />
-                </a>
+                </Link>
               ))}
             </nav>
           </div>

@@ -1,12 +1,72 @@
 "use client";
 
-import React, { useRef, useState } from "react";
-import { Reveal } from "@/components/motion/Reveal";
-import { ArrowUpRight, CheckCircle2, ChevronRight, Sparkles } from "lucide-react";
+import React, { useState } from "react";
+import { ArrowUpRight, CheckCircle2, ChevronRight, Sparkles, Layers, Shield, Droplets, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function ProductLinesShowcase() {
   const [activeTab, setActiveTab] = useState(0);
+  const [activeLayerIndex, setActiveLayerIndex] = useState(2); // SPC layer inspection
+
+  const spcLayers = [
+    {
+      id: "wear",
+      title: "UV Ceramic Wear Barrier",
+      thickness: "0.55mm Commercial Grade",
+      desc: "Double-cured polyurethane infused with ceramic beads. Resists pet claws, high heels, and heavy foot traffic without dulling.",
+      icon: Shield,
+      tag: "LAYER 01 • 0.55 MM",
+      borderColor: "border-cyan-400",
+      activeBg: "bg-cyan-950/60 shadow-cyan-500/30 ring-2 ring-cyan-400/40",
+      inactiveBg: "bg-cyan-950/20 border-cyan-500/30",
+    },
+    {
+      id: "film",
+      title: "Ultra-HD EIR Decorative Film",
+      thickness: "French Oak Photographic Print",
+      desc: "Embossed-In-Register wood grain synchronized with real tactile knotting and natural matte pigmentation.",
+      icon: Sparkles,
+      tag: "LAYER 02 • EIR GRAIN",
+      borderColor: "border-amber-400",
+      activeBg: "bg-[#3B291A]/95 shadow-amber-500/30 ring-2 ring-amber-400/40",
+      inactiveBg: "bg-[#2E2014]/70 border-amber-500/30",
+    },
+    {
+      id: "core",
+      title: "Solid Stone Polymer Core",
+      thickness: "4.5mm Rigid Limestone Core",
+      desc: "70% natural limestone powder fused with virgin PVC. Zero thermal expansion, 100% waterproof, and completely termite-proof.",
+      icon: Droplets,
+      tag: "LAYER 03 • CORE 4.5 MM",
+      borderColor: "border-brand-orange",
+      activeBg: "bg-[#1E2229] shadow-brand-orange/40 ring-2 ring-brand-orange/40",
+      inactiveBg: "bg-[#16181D] border-white/20",
+    },
+    {
+      id: "click",
+      title: "Patented Unilin Joint",
+      thickness: "Watertight Mechanical Seal",
+      desc: "Laser-machined joint profile enabling glueless installation. Resists moisture seepage and locks planks seamlessly together.",
+      icon: Layers,
+      tag: "LAYER 04 • UNILIN SEAL",
+      borderColor: "border-emerald-400",
+      activeBg: "bg-emerald-950/60 shadow-emerald-500/30 ring-2 ring-emerald-400/40",
+      inactiveBg: "bg-emerald-950/20 border-emerald-500/30",
+    },
+    {
+      id: "underlay",
+      title: "Acoustic IXPE Pad",
+      thickness: "1.5mm Integrated Membrane",
+      desc: "High-density cross-linked polyethylene pad dampening impact footfall sounds by up to 21dB while correcting minor subfloor variations.",
+      icon: VolumeX,
+      tag: "LAYER 05 • 1.5 MM MEMBRANE",
+      borderColor: "border-indigo-400",
+      activeBg: "bg-indigo-950/60 shadow-indigo-500/30 ring-2 ring-indigo-400/40",
+      inactiveBg: "bg-indigo-950/20 border-indigo-500/30",
+    },
+  ];
+
+  const currentActiveLayer = spcLayers[activeLayerIndex];
 
   const productLines = [
     {
@@ -26,20 +86,90 @@ export function ProductLinesShowcase() {
       accentColor: "#F25C05",
       badgeColor: "border-brand-orange/40 text-brand-orange",
       heroTextureMock: (
-        <div className="w-full h-full rounded-sm bg-gradient-to-br from-[#4A3222] via-[#2F1F14] to-[#160E08] p-6 flex flex-col justify-between border border-amber-900/40 relative overflow-hidden group">
-          <div className="absolute inset-0 bg-noise opacity-30" />
-          <div className="flex justify-between items-start z-10">
-            <span className="text-[10px] font-mono tracking-widest text-brand-orange uppercase">
-              PLANK DIMENSIONS: 1220 × 180 × 6.0 MM
+        <div className="w-full h-full flex flex-col justify-between p-4 sm:p-6 bg-brand-black/90 border border-brand-orange/30 rounded-sm relative overflow-hidden">
+          {/* Top prompt */}
+          <div className="flex items-center justify-between border-b border-white/10 pb-3 z-10">
+            <span className="text-[10px] font-mono tracking-widest text-brand-orange uppercase flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5" />
+              <span>Interactive 5-Layer Anatomy</span>
             </span>
-            <span className="text-xs font-mono text-brand-sand-300">EIR FINISH</span>
+            <span className="text-[10px] font-mono text-brand-sand-300">
+              Click Layer To Inspect
+            </span>
           </div>
-          <div className="space-y-1 z-10">
-            <div className="font-display text-2xl text-brand-white uppercase">
-              French Oak Herringbone
+
+          {/* 3D Stratified Layer Stack (Perspective Preserved) */}
+          <div className="relative w-full h-44 sm:h-52 my-3 flex items-center justify-center perspective-[1000px]">
+            <div
+              className="relative w-56 sm:w-72 h-28 sm:h-32 transition-transform duration-300"
+              style={{ transformStyle: "preserve-3d" }}
+            >
+              {spcLayers.map((layer, idx) => {
+                // Calculate stratified vertical offsets so all 5 layers are distinctly visible
+                const yOffset = (idx - 2) * 26;
+                const isSelected = activeLayerIndex === idx;
+
+                return (
+                  <div
+                    key={layer.id}
+                    onClick={() => setActiveLayerIndex(idx)}
+                    role="button"
+                    tabIndex={0}
+                    data-cursor-hover
+                    className={cn(
+                      "absolute inset-0 rounded-xs border-2 flex items-center justify-between px-3 py-1.5 cursor-pointer transition-all duration-300 select-none shadow-lg",
+                      isSelected ? layer.activeBg : layer.inactiveBg
+                    )}
+                    style={{
+                      transform: `translateY(${yOffset}px) rotateX(25deg) rotateY(-15deg) scale(${isSelected ? 1.05 : 0.98})`,
+                      transformOrigin: "center center",
+                    }}
+                  >
+                    <span className="text-[9px] font-mono uppercase font-bold text-white tracking-wider truncate">
+                      {layer.tag}
+                    </span>
+                    <span className="text-[8px] font-mono text-brand-sand-400 uppercase hidden sm:inline">
+                      {layer.thickness.split(" ")[0]}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
-            <div className="text-xs text-brand-sand-400 font-sans">
-              Tactile grain indentation synchronized to optical wood knots.
+          </div>
+
+          {/* Active Layer Dynamic Card */}
+          <div className="p-3 rounded-xs bg-black/60 border border-white/15 z-10 flex items-center justify-between gap-3">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono uppercase text-brand-orange font-bold">
+                  {currentActiveLayer.tag}
+                </span>
+                <span className="text-white/20">•</span>
+                <span className="text-[10px] font-mono text-brand-sand-300">
+                  {currentActiveLayer.thickness}
+                </span>
+              </div>
+              <p className="text-[11px] font-sans text-brand-sand-200 line-clamp-1">
+                {currentActiveLayer.desc}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-1 shrink-0">
+              {spcLayers.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setActiveLayerIndex(i)}
+                  className={cn(
+                    "w-5 h-5 rounded-xs text-[9px] font-mono flex items-center justify-center transition-colors",
+                    activeLayerIndex === i
+                      ? "bg-brand-orange text-white font-bold"
+                      : "bg-white/10 text-brand-sand-400 hover:text-white"
+                  )}
+                >
+                  {i + 1}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -212,7 +342,7 @@ export function ProductLinesShowcase() {
           </p>
         </div>
 
-        {/* Tab Navigation Navigation Strip */}
+        {/* Tab Navigation Strip */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2 border-b border-white/10 pb-4">
           {productLines.map((prod, idx) => (
             <button
@@ -292,7 +422,7 @@ export function ProductLinesShowcase() {
             {/* Action buttons */}
             <div className="pt-4 flex items-center gap-4">
               <a
-                href="#contact"
+                href="#room-planner"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-sm bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-mono uppercase tracking-widest font-semibold transition-all shadow-lg"
               >
                 <span>Request Sample Swatch</span>
@@ -312,7 +442,7 @@ export function ProductLinesShowcase() {
           </div>
 
           {/* Right Column: Interactive Layered Texture Mockup (6 cols) */}
-          <div className="lg:col-span-6 h-[340px] sm:h-[420px] rounded-sm overflow-hidden">
+          <div className="lg:col-span-6 min-h-[380px] sm:min-h-[440px] rounded-sm overflow-hidden">
             {currentProduct.heroTextureMock}
           </div>
         </div>
@@ -320,4 +450,3 @@ export function ProductLinesShowcase() {
     </section>
   );
 }
-

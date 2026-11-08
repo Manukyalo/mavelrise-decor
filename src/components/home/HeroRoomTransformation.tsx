@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useTilt } from "@/hooks/useTilt";
 import { MagneticButton } from "@/components/ui/MagneticButton";
-import { ArrowUpRight, Sparkles, Layers, Sliders, Volume2, Lightbulb } from "lucide-react";
+import { ArrowUpRight, Sparkles, Layers, Sliders, Volume2, Lightbulb, Play, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface HeroRoomTransformationProps {
@@ -19,7 +19,7 @@ export function HeroRoomTransformation({
   headlineLine1 = "TRANSFORM ORDINARY SPACES",
   headlineLine2 = "INTO ARCHITECTURAL SANCTUARIES",
   ctaText = "Design your room",
-  subText = "Experience the live transformation: scroll to witness bare concrete become an acoustic luxury retreat with floor planks, wall panels, and illuminated lighting.",
+  subText = "Experience the live transformation: click any stage or scroll to witness bare concrete become an acoustic luxury retreat with floor planks, wall panels, and illuminated lighting.",
 }: HeroRoomTransformationProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const roomWrapperRef = useRef<HTMLDivElement>(null);
@@ -30,12 +30,61 @@ export function HeroRoomTransformation({
   const marbleSlabRef = useRef<HTMLDivElement>(null);
   const lampFixtureRef = useRef<HTMLDivElement>(null);
   const lampGlowRef = useRef<HTMLDivElement>(null);
-  const chapterBadgeRef = useRef<HTMLSpanElement>(null);
-  const chapterTitleRef = useRef<HTMLHeadingElement>(null);
-  const chapterDescRef = useRef<HTMLParagraphElement>(null);
 
   const [currentStep, setCurrentStep] = useState(1);
   const tilt = useTilt(6); // Subtle 3D mouse parallax tilt
+
+  // Transition to a specific transformation step (1 to 5)
+  const setStepState = useCallback((step: number) => {
+    setCurrentStep(step);
+
+    const floor = floorPlanksRef.current;
+    const walls = wallPanelsRef.current;
+    const marble = marbleSlabRef.current;
+    const lamp = lampFixtureRef.current;
+    const glow = lampGlowRef.current;
+
+    // Step 1: Raw Canvas
+    if (step === 1) {
+      gsap.to(floor, { opacity: 0, y: 50, duration: 0.6, ease: "power2.out" });
+      gsap.to(walls, { opacity: 0, x: -80, duration: 0.6, ease: "power2.out" });
+      gsap.to(marble, { opacity: 0, x: 80, duration: 0.6, ease: "power2.out" });
+      gsap.to(lamp, { opacity: 0, y: -60, duration: 0.6, ease: "power2.out" });
+      gsap.to(glow, { opacity: 0, scale: 0.5, duration: 0.6, ease: "power2.out" });
+    }
+    // Step 2: Floor Planks Click In
+    else if (step === 2) {
+      gsap.to(floor, { opacity: 1, y: 0, duration: 0.7, ease: "back.out(1.2)" });
+      gsap.to(walls, { opacity: 0, x: -80, duration: 0.5, ease: "power2.out" });
+      gsap.to(marble, { opacity: 0, x: 80, duration: 0.5, ease: "power2.out" });
+      gsap.to(lamp, { opacity: 0, y: -60, duration: 0.5, ease: "power2.out" });
+      gsap.to(glow, { opacity: 0, scale: 0.5, duration: 0.5, ease: "power2.out" });
+    }
+    // Step 3: Walls & Marble Slabs Lock In
+    else if (step === 3) {
+      gsap.to(floor, { opacity: 1, y: 0, duration: 0.5 });
+      gsap.to(walls, { opacity: 1, x: 0, duration: 0.7, ease: "power3.out" });
+      gsap.to(marble, { opacity: 1, x: 0, duration: 0.7, ease: "power3.out", delay: 0.1 });
+      gsap.to(lamp, { opacity: 0, y: -60, duration: 0.5, ease: "power2.out" });
+      gsap.to(glow, { opacity: 0, scale: 0.5, duration: 0.5, ease: "power2.out" });
+    }
+    // Step 4: Lamp Fixture & Warm Glow
+    else if (step === 4) {
+      gsap.to(floor, { opacity: 1, y: 0, duration: 0.5 });
+      gsap.to(walls, { opacity: 1, x: 0, duration: 0.5 });
+      gsap.to(marble, { opacity: 1, x: 0, duration: 0.5 });
+      gsap.to(lamp, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" });
+      gsap.to(glow, { opacity: 0.85, scale: 1.1, duration: 0.8, ease: "power3.out", delay: 0.2 });
+    }
+    // Step 5: Finished Architectural Sanctuary
+    else {
+      gsap.to(floor, { opacity: 1, y: 0, duration: 0.5 });
+      gsap.to(walls, { opacity: 1, x: 0, duration: 0.5 });
+      gsap.to(marble, { opacity: 1, x: 0, duration: 0.5 });
+      gsap.to(lamp, { opacity: 1, y: 0, duration: 0.5 });
+      gsap.to(glow, { opacity: 1, scale: 1.2, duration: 0.8, ease: "power3.out" });
+    }
+  }, []);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -44,134 +93,31 @@ export function HeroRoomTransformation({
     if (!container) return;
 
     if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      // In reduced motion mode, show fully transformed state immediately
-      if (floorPlanksRef.current) floorPlanksRef.current.style.opacity = "1";
-      if (wallPanelsRef.current) wallPanelsRef.current.style.opacity = "1";
-      if (marbleSlabRef.current) marbleSlabRef.current.style.opacity = "1";
-      if (lampFixtureRef.current) lampFixtureRef.current.style.opacity = "1";
-      if (lampGlowRef.current) lampGlowRef.current.style.opacity = "0.8";
+      setStepState(5);
       return;
     }
 
-    const ctx = gsap.context(() => {
-      // Master Scrubbed Timeline pinned across balanced scroll distance
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: container,
-          start: "top top",
-          end: "+=120%",
-          pin: true,
-          scrub: 0.5,
-          anticipatePin: 1,
-          onUpdate: (self) => {
-            const p = self.progress;
-            if (p < 0.22) setCurrentStep(1);
-            else if (p < 0.48) setCurrentStep(2);
-            else if (p < 0.74) setCurrentStep(3);
-            else if (p < 0.9) setCurrentStep(4);
-            else setCurrentStep(5);
-          },
-        },
-      });
+    // Scroll trigger without hard pinning so no empty blank spacers or traps are created
+    const st = ScrollTrigger.create({
+      trigger: container,
+      start: "top 20%",
+      end: "bottom 30%",
+      onUpdate: (self) => {
+        const p = self.progress;
+        if (p < 0.2) setStepState(1);
+        else if (p < 0.45) setStepState(2);
+        else if (p < 0.7) setStepState(3);
+        else if (p < 0.9) setStepState(4);
+        else setStepState(5);
+      },
+    });
 
-      // 1. Initial State: Raw concrete room (0% to 20%)
+    return () => {
+      st.kill();
+    };
+  }, [setStepState]);
 
-      // 2. Floor Planks click and slide in (20% to 45%)
-      tl.fromTo(
-        floorPlanksRef.current,
-        {
-          opacity: 0,
-          y: 60,
-          scaleY: 0.92,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          scaleY: 1,
-          duration: 1.5,
-          ease: "power2.out",
-        },
-        0.5
-      );
-
-      // Staggered planks click snap
-      const planks = floorPlanksRef.current?.querySelectorAll(".plank-item");
-      if (planks && planks.length > 0) {
-        tl.fromTo(
-          planks,
-          { y: 30, opacity: 0 },
-          { y: 0, opacity: 1, stagger: 0.1, duration: 1.2, ease: "back.out(1.5)" },
-          0.6
-        );
-      }
-
-      // 3. Wall Panels & Marble Slabs slide in (45% to 70%)
-      tl.fromTo(
-        wallPanelsRef.current,
-        {
-          x: -120,
-          opacity: 0,
-        },
-        {
-          x: 0,
-          opacity: 1,
-          duration: 1.8,
-          ease: "power3.out",
-        },
-        1.8
-      );
-
-      tl.fromTo(
-        marbleSlabRef.current,
-        {
-          x: 120,
-          opacity: 0,
-        },
-        {
-          x: 0,
-          opacity: 1,
-          duration: 1.8,
-          ease: "power3.out",
-        },
-        2.0
-      );
-
-      // 4. Lamp lowers down and lights up (70% to 90%)
-      tl.fromTo(
-        lampFixtureRef.current,
-        {
-          y: -80,
-          opacity: 0,
-        },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 1.4,
-          ease: "power2.out",
-        },
-        3.5
-      );
-
-      tl.fromTo(
-        lampGlowRef.current,
-        {
-          opacity: 0,
-          scale: 0.4,
-        },
-        {
-          opacity: 0.9,
-          scale: 1.15,
-          duration: 1.5,
-          ease: "power3.inOut",
-        },
-        4.0
-      );
-    }, containerRef);
-
-    return () => ctx.revert();
-  }, []);
-
-  // Chapter Descriptions
+  // Chapter Metadata
   const chapterMeta = [
     {
       num: "01",
@@ -208,9 +154,9 @@ export function HeroRoomTransformation({
   const currentMeta = chapterMeta[currentStep - 1] || chapterMeta[0];
 
   return (
-    <div
+    <section
       ref={containerRef}
-      className="relative w-full h-[100dvh] max-h-[100dvh] bg-brand-black overflow-hidden flex flex-col justify-between"
+      className="relative w-full min-h-[90vh] lg:min-h-[96vh] bg-brand-black flex flex-col justify-between pt-24 sm:pt-28 pb-12 overflow-hidden"
     >
       {/* Dynamic Ambient Background Illumination */}
       <div
@@ -225,30 +171,30 @@ export function HeroRoomTransformation({
         }}
       />
 
-      {/* Top Bar: Headline & Story Chapter Counter */}
-      <div className="container mx-auto px-4 md:px-8 pt-16 sm:pt-20 md:pt-24 z-20 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div className="max-w-2xl space-y-1.5 md:space-y-2">
+      {/* Top Bar: Headline & Actions */}
+      <div className="container mx-auto px-4 md:px-8 z-20 flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6">
+        <div className="max-w-2xl space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-brand-black-elevated border border-white/15 text-[10px] font-mono tracking-widest text-brand-orange uppercase">
             <span className="w-1.5 h-1.5 rounded-full bg-brand-orange animate-pulse" />
             <span>CINEMATIC ROOM TRANSFORMATION</span>
           </div>
 
-          <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-light uppercase text-brand-white leading-[0.98] tracking-tight">
+          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-light uppercase text-brand-white leading-[0.98] tracking-tight">
             {headlineLine1} <br />
             <span className="italic text-brand-sand-200">{headlineLine2}</span>
           </h1>
 
-          <p className="text-xs sm:text-sm font-sans text-brand-sand-300 max-w-xl leading-relaxed hidden sm:block">
+          <p className="text-xs sm:text-sm font-sans text-brand-sand-300 max-w-xl leading-relaxed">
             {subText}
           </p>
         </div>
 
-        {/* Primary CTA: "Design your room" */}
+        {/* Primary CTA */}
         <div className="flex items-center gap-3">
           <MagneticButton strength={0.4}>
             <a
               href="#room-planner"
-              className="inline-flex items-center gap-2.5 px-6 py-3 rounded-sm bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-mono uppercase tracking-widest font-semibold transition-all duration-300 shadow-xl shadow-brand-orange/30 group"
+              className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-sm bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-mono uppercase tracking-widest font-semibold transition-all duration-300 shadow-xl shadow-brand-orange/30 group"
             >
               <span>{ctaText}</span>
               <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -259,18 +205,18 @@ export function HeroRoomTransformation({
             href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "254712345678"}?text=${encodeURIComponent("Hello MarvelRise Decor, I would like to design my room and get an estimate.")}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:inline-flex items-center gap-2 px-5 py-3 rounded-sm bg-white/5 hover:bg-white/10 text-brand-sand-200 border border-white/15 hover:border-white/30 text-xs font-mono uppercase tracking-widest transition-all duration-300"
+            className="hidden sm:inline-flex items-center gap-2 px-5 py-3.5 rounded-sm bg-white/5 hover:bg-white/10 text-brand-sand-200 border border-white/15 hover:border-white/30 text-xs font-mono uppercase tracking-widest transition-all duration-300"
           >
             <span>WhatsApp Estimate</span>
           </a>
         </div>
       </div>
 
-      {/* 3D PERSPECTIVE INTERACTIVE ROOM TRANSFORMATION CANVAS */}
-      <div className="relative w-full flex-1 max-h-[46vh] md:max-h-[50vh] my-1 flex items-center justify-center z-10 px-4">
+      {/* 3D PERSPECTIVE INTERACTIVE ROOM CANVAS */}
+      <div className="relative w-full my-6 flex items-center justify-center z-10 px-4">
         <div
           ref={roomWrapperRef}
-          className="relative w-full max-w-5xl h-full rounded-sm bg-brand-black-elevated/80 border border-white/15 overflow-hidden shadow-2xl will-change-transform flex items-center justify-center"
+          className="relative w-full max-w-5xl h-[340px] sm:h-[420px] md:h-[460px] rounded-sm bg-brand-black-elevated/80 border border-white/15 overflow-hidden shadow-2xl will-change-transform flex items-center justify-center"
           style={{
             transform: `perspective(1000px) rotateX(${tilt.y * 0.4}deg) rotateY(${tilt.x * 0.4}deg)`,
             transition: "transform 0.15s ease-out",
@@ -286,7 +232,6 @@ export function HeroRoomTransformation({
               <span>AXIS: X+4.82 Y+2.90 Z+0.00</span>
               <span>VOLUME: 68.4 M³</span>
             </div>
-            {/* Raw concrete back wall lines */}
             <div className="w-full h-full border-b border-white/10 flex items-center justify-center">
               <span className="text-[11px] font-mono text-brand-sand-500 uppercase tracking-widest">
                 RAW SPATIAL VOID • CONCRETE ENCLOSURE
@@ -294,12 +239,11 @@ export function HeroRoomTransformation({
             </div>
           </div>
 
-          {/* LAYER 2: SPC Click-Lock Floor Planks (Animated In) */}
+          {/* LAYER 2: SPC Click-Lock Floor Planks */}
           <div
             ref={floorPlanksRef}
-            className="absolute bottom-0 inset-x-0 h-44 md:h-52 bg-gradient-to-t from-[#1F1712] via-[#2A1F17] to-[#140F0C] border-t border-brand-orange/40 will-change-transform z-10 opacity-0 overflow-hidden"
+            className="absolute bottom-0 inset-x-0 h-36 md:h-44 bg-gradient-to-t from-[#1F1712] via-[#2A1F17] to-[#140F0C] border-t border-brand-orange/40 will-change-transform z-10 opacity-0 overflow-hidden"
           >
-            {/* Planks grid */}
             <div className="grid grid-cols-4 md:grid-cols-8 gap-1.5 p-3 h-full">
               {[...Array(8)].map((_, idx) => (
                 <div
@@ -321,7 +265,6 @@ export function HeroRoomTransformation({
               ))}
             </div>
 
-            {/* Click-lock badge */}
             <div className="absolute top-2 right-4 px-2.5 py-0.5 rounded-full bg-brand-orange/20 border border-brand-orange/40 text-[9px] font-mono text-brand-orange uppercase">
               Click-Lock Planks Engaged
             </div>
@@ -330,9 +273,8 @@ export function HeroRoomTransformation({
           {/* LAYER 3A: Left Wall Fluted Acoustic Timber Slat Panels */}
           <div
             ref={wallPanelsRef}
-            className="absolute left-0 top-0 bottom-36 md:bottom-44 w-1/3 md:w-1/4 bg-[#1B140E] border-r border-white/20 will-change-transform z-20 opacity-0 overflow-hidden shadow-2xl"
+            className="absolute left-0 top-0 bottom-28 md:bottom-36 w-1/3 md:w-1/4 bg-[#1B140E] border-r border-white/20 will-change-transform z-20 opacity-0 overflow-hidden shadow-2xl"
           >
-            {/* Fluted Vertical Slats */}
             <div className="flex h-full gap-1 p-2 bg-black/60">
               {[...Array(12)].map((_, idx) => (
                 <div
@@ -349,9 +291,8 @@ export function HeroRoomTransformation({
           {/* LAYER 3B: Right Wall Monolithic UV Marble Sheet */}
           <div
             ref={marbleSlabRef}
-            className="absolute right-0 top-0 bottom-36 md:bottom-44 w-1/3 md:w-1/4 bg-[#16181C] border-l border-white/20 will-change-transform z-20 opacity-0 overflow-hidden shadow-2xl flex flex-col justify-between p-4"
+            className="absolute right-0 top-0 bottom-28 md:bottom-36 w-1/3 md:w-1/4 bg-[#16181C] border-l border-white/20 will-change-transform z-20 opacity-0 overflow-hidden shadow-2xl flex flex-col justify-between p-4"
           >
-            {/* Gold veining simulation */}
             <div className="absolute inset-0 opacity-40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-100/20 via-transparent to-transparent pointer-events-none" />
             <div className="relative z-10 flex justify-between items-start">
               <span className="text-[9px] font-mono text-white/70 uppercase tracking-widest">
@@ -374,46 +315,52 @@ export function HeroRoomTransformation({
             ref={lampFixtureRef}
             className="absolute top-0 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center pointer-events-none opacity-0"
           >
-            {/* Cord & Ceiling Rose */}
-            <div className="w-[1.5px] h-16 md:h-24 bg-gradient-to-b from-white/40 to-brand-brass-dark" />
+            <div className="w-[1.5px] h-14 md:h-20 bg-gradient-to-b from-white/40 to-brand-brass-dark" />
             <div className="w-5 h-2 rounded-xs bg-brand-brass" />
 
-            {/* Brushed Brass Lampshade */}
             <div className="relative w-28 md:w-36 h-12 md:h-14 bg-gradient-to-b from-brand-brass to-brand-brass-dark rounded-t-full border border-amber-300/40 shadow-xl flex items-end justify-center pb-1">
               <div className="w-8 h-4 rounded-t-full bg-amber-100 shadow-[0_0_20px_#FFD180]" />
             </div>
 
-            {/* Radiant Lamp Wash Glow Casting Over Floor and Walls */}
             <div
               ref={lampGlowRef}
-              className="w-[380px] md:w-[560px] h-[340px] md:h-[480px] rounded-full bg-gradient-to-b from-amber-400/40 via-brand-orange/20 to-transparent blur-[70px] pointer-events-none opacity-0 -mt-4"
+              className="w-[340px] md:w-[500px] h-[300px] md:h-[420px] rounded-full bg-gradient-to-b from-amber-400/40 via-brand-orange/20 to-transparent blur-[60px] pointer-events-none opacity-0 -mt-4"
             />
-          </div>
-
-          {/* Center Cinematic Stage Callout */}
-          <div className="absolute bottom-6 z-30 pointer-events-none text-center">
-            <span className="text-[10px] font-mono tracking-[0.3em] text-brand-sand-200 uppercase bg-black/60 px-4 py-1 rounded-full border border-white/10 backdrop-blur-md">
-              Scroll To Control Transformation Scene
-            </span>
           </div>
         </div>
       </div>
 
-      {/* Bottom Floating Story Chapter HUD / Status Bar */}
-      <div className="container mx-auto px-4 md:px-8 pb-4 md:pb-6 z-20">
+      {/* Interactive Chapter HUD & Stage Selector */}
+      <div className="container mx-auto px-4 md:px-8 z-20 space-y-3">
+        {/* Stage Buttons */}
+        <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start">
+          {chapterMeta.map((ch, idx) => (
+            <button
+              key={ch.num}
+              type="button"
+              onClick={() => setStepState(idx + 1)}
+              className={cn(
+                "px-3.5 py-1.5 rounded-xs text-[11px] font-mono uppercase tracking-wider transition-all duration-200 border",
+                currentStep === idx + 1
+                  ? "bg-brand-orange border-brand-orange text-white font-semibold shadow-lg shadow-brand-orange/20"
+                  : "bg-white/5 border-white/10 text-brand-sand-400 hover:border-white/25 hover:text-white"
+              )}
+            >
+              {ch.num}. {ch.badge.split(" ")[1] || ch.badge}
+            </button>
+          ))}
+        </div>
+
+        {/* Status Card */}
         <div className="p-4 sm:p-5 rounded-sm glass-panel border border-white/15 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            {/* Step Counter */}
-            <div className="w-10 h-10 rounded-sm bg-brand-orange/20 border border-brand-orange/40 flex items-center justify-center font-display text-lg text-brand-orange font-semibold">
+            <div className="w-10 h-10 rounded-sm bg-brand-orange/20 border border-brand-orange/40 flex items-center justify-center font-display text-lg text-brand-orange font-semibold shrink-0">
               {currentMeta.num}
             </div>
 
             <div>
               <div className="flex items-center gap-2">
-                <span
-                  ref={chapterBadgeRef}
-                  className="text-[10px] font-mono tracking-widest text-brand-orange uppercase font-semibold"
-                >
+                <span className="text-[10px] font-mono tracking-widest text-brand-orange uppercase font-semibold">
                   {currentMeta.badge}
                 </span>
                 <span className="text-white/20">•</span>
@@ -421,24 +368,17 @@ export function HeroRoomTransformation({
                   Stage {currentStep} of 5
                 </span>
               </div>
-              <h2
-                ref={chapterTitleRef}
-                className="font-display text-base sm:text-lg text-brand-white uppercase"
-              >
+              <h2 className="font-display text-base sm:text-lg text-brand-white uppercase">
                 {currentMeta.title}
               </h2>
             </div>
           </div>
 
-          {/* Chapter Description */}
-          <p
-            ref={chapterDescRef}
-            className="text-xs font-sans text-brand-sand-300 max-w-md leading-relaxed"
-          >
+          <p className="text-xs font-sans text-brand-sand-300 max-w-md leading-relaxed">
             {currentMeta.desc}
           </p>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

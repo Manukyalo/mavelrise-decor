@@ -34,33 +34,33 @@ export function BrandedLoader({ onComplete }: BrandedLoaderProps) {
         },
       });
 
-      // SVG path line drawing
+      // SVG path line drawing - refined high-impact timing
       tl.fromTo(
         ".mrd-path",
         { strokeDashoffset: 400, opacity: 0 },
-        { strokeDashoffset: 0, opacity: 1, duration: 1.1, stagger: 0.15, ease: "power3.inOut" }
+        { strokeDashoffset: 0, opacity: 1, duration: 0.6, stagger: 0.08, ease: "power2.out" }
       )
         .fromTo(
           ".mrd-accent",
           { scale: 0, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 0.5, stagger: 0.08, ease: "back.out(2)" },
-          "-=0.4"
+          { scale: 1, opacity: 1, duration: 0.3, stagger: 0.04, ease: "back.out(2)" },
+          "-=0.2"
         )
         .fromTo(
           textRef.current,
-          { opacity: 0, y: 15 },
-          { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
-          "-=0.3"
+          { opacity: 0, y: 10 },
+          { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" },
+          "-=0.15"
         )
         .to(
           [svgRef.current, textRef.current],
-          { opacity: 0, y: -20, duration: 0.5, ease: "power2.in" },
-          "+=0.4"
+          { opacity: 0, y: -10, duration: 0.25, ease: "power2.in" },
+          "+=0.2"
         )
         .to(curtainRef.current, {
           yPercent: -100,
-          duration: 0.9,
-          ease: "power4.inOut",
+          duration: 0.6,
+          ease: "power3.inOut",
         });
     }, containerRef);
 

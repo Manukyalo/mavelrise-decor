@@ -13,7 +13,7 @@ interface SmoothScrollContextType {
 
 const SmoothScrollContext = createContext<SmoothScrollContextType>({
   lenis: null,
-  scrollTo: () => {},
+  scrollTo: () => { },
   isReducedMotion: false,
 });
 
@@ -45,14 +45,17 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
     }
 
     // Initialize Lenis smooth scroll
+    const isTouch = window.matchMedia("(pointer: coarse)").matches;
+
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: isTouch ? 0.8 : 1.1,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Exponential luxury ease
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
-      wheelMultiplier: 0.9,
-      touchMultiplier: 1.5,
+      wheelMultiplier: 1.0,
+      touchMultiplier: 1.0, // 1:1 natural physics on mobile
+      syncTouch: false,
     });
 
     lenisRef.current = lenis;
@@ -66,7 +69,12 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
     };
 
     gsap.ticker.add(updateTicker);
-    gsap.ticker.lagSmoothing(0);
+    gsap.ticker.lagSmoothing(500, 33);
+
+    // Refresh ScrollTrigger positions once DOM is stable
+    setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 500);
 
     return () => {
       mediaQuery.removeEventListener("change", handleMotionChange);

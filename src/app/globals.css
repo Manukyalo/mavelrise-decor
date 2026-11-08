@@ -19,7 +19,7 @@
   }
 
   body {
-    overflow-x: hidden;
+    overflow-x: clip;
     background-color: #0A0B0D;
     color: #FAF9F5;
     font-family: var(--font-plus-jakarta);

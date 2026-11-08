@@ -54,14 +54,15 @@ export function HeroRoomTransformation({
     }
 
     const ctx = gsap.context(() => {
-      // Master Scrubbed Timeline pinned across 300vh scroll distance
+      // Master Scrubbed Timeline pinned across balanced scroll distance
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: container,
           start: "top top",
-          end: "+=260%",
+          end: "+=120%",
           pin: true,
-          scrub: 0.8,
+          scrub: 0.5,
+          anticipatePin: 1,
           onUpdate: (self) => {
             const p = self.progress;
             if (p < 0.22) setCurrentStep(1);
@@ -209,7 +210,7 @@ export function HeroRoomTransformation({
   return (
     <div
       ref={containerRef}
-      className="relative w-full min-h-screen bg-brand-black overflow-hidden flex flex-col justify-between"
+      className="relative w-full h-[100dvh] max-h-[100dvh] bg-brand-black overflow-hidden flex flex-col justify-between"
     >
       {/* Dynamic Ambient Background Illumination */}
       <div
@@ -219,38 +220,38 @@ export function HeroRoomTransformation({
             currentStep >= 4
               ? "radial-gradient(circle at 50% 40%, rgba(242, 92, 5, 0.18) 0%, rgba(15, 76, 58, 0.12) 45%, #0A0B0D 85%)"
               : currentStep >= 2
-              ? "radial-gradient(circle at 50% 60%, rgba(15, 76, 58, 0.15) 0%, #0A0B0D 70%)"
-              : "radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.04) 0%, #0A0B0D 80%)",
+                ? "radial-gradient(circle at 50% 60%, rgba(15, 76, 58, 0.15) 0%, #0A0B0D 70%)"
+                : "radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.04) 0%, #0A0B0D 80%)",
         }}
       />
 
       {/* Top Bar: Headline & Story Chapter Counter */}
-      <div className="container mx-auto px-4 md:px-8 pt-24 z-20 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="max-w-2xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-black-elevated border border-white/15 text-[10px] font-mono tracking-widest text-brand-orange uppercase">
-            <span className="w-2 h-2 rounded-full bg-brand-orange animate-pulse" />
+      <div className="container mx-auto px-4 md:px-8 pt-16 sm:pt-20 md:pt-24 z-20 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="max-w-2xl space-y-1.5 md:space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-brand-black-elevated border border-white/15 text-[10px] font-mono tracking-widest text-brand-orange uppercase">
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-orange animate-pulse" />
             <span>CINEMATIC ROOM TRANSFORMATION</span>
           </div>
 
-          <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-light uppercase text-brand-white leading-[0.98] tracking-tight">
+          <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-light uppercase text-brand-white leading-[0.98] tracking-tight">
             {headlineLine1} <br />
             <span className="italic text-brand-sand-200">{headlineLine2}</span>
           </h1>
 
-          <p className="text-xs sm:text-sm font-sans text-brand-sand-300 max-w-xl leading-relaxed">
+          <p className="text-xs sm:text-sm font-sans text-brand-sand-300 max-w-xl leading-relaxed hidden sm:block">
             {subText}
           </p>
         </div>
 
         {/* Primary CTA: "Design your room" */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="flex items-center gap-3">
           <MagneticButton strength={0.4}>
             <a
               href="#room-planner"
-              className="inline-flex items-center gap-3 px-8 py-4 rounded-sm bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-mono uppercase tracking-widest font-semibold transition-all duration-300 shadow-2xl shadow-brand-orange/30 group"
+              className="inline-flex items-center gap-2.5 px-6 py-3 rounded-sm bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-mono uppercase tracking-widest font-semibold transition-all duration-300 shadow-xl shadow-brand-orange/30 group"
             >
               <span>{ctaText}</span>
-              <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </a>
           </MagneticButton>
 
@@ -258,7 +259,7 @@ export function HeroRoomTransformation({
             href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "254712345678"}?text=${encodeURIComponent("Hello MarvelRise Decor, I would like to design my room and get an estimate.")}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-4 rounded-sm bg-white/5 hover:bg-white/10 text-brand-sand-200 border border-white/15 hover:border-white/30 text-xs font-mono uppercase tracking-widest transition-all duration-300"
+            className="hidden sm:inline-flex items-center gap-2 px-5 py-3 rounded-sm bg-white/5 hover:bg-white/10 text-brand-sand-200 border border-white/15 hover:border-white/30 text-xs font-mono uppercase tracking-widest transition-all duration-300"
           >
             <span>WhatsApp Estimate</span>
           </a>
@@ -266,7 +267,7 @@ export function HeroRoomTransformation({
       </div>
 
       {/* 3D PERSPECTIVE INTERACTIVE ROOM TRANSFORMATION CANVAS */}
-      <div className="relative w-full h-[58vh] md:h-[62vh] my-4 flex items-center justify-center z-10 px-4">
+      <div className="relative w-full flex-1 max-h-[46vh] md:max-h-[50vh] my-1 flex items-center justify-center z-10 px-4">
         <div
           ref={roomWrapperRef}
           className="relative w-full max-w-5xl h-full rounded-sm bg-brand-black-elevated/80 border border-white/15 overflow-hidden shadow-2xl will-change-transform flex items-center justify-center"
@@ -399,7 +400,7 @@ export function HeroRoomTransformation({
       </div>
 
       {/* Bottom Floating Story Chapter HUD / Status Bar */}
-      <div className="container mx-auto px-4 md:px-8 pb-8 z-20">
+      <div className="container mx-auto px-4 md:px-8 pb-4 md:pb-6 z-20">
         <div className="p-4 sm:p-5 rounded-sm glass-panel border border-white/15 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             {/* Step Counter */}

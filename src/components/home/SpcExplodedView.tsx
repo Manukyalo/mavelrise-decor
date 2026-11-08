@@ -30,14 +30,22 @@ export function SpcExplodedView() {
     }
 
     const ctx = gsap.context(() => {
-      // Pin container and scrub layers apart vertically
+      // Set initial stratified spacing so layers are clearly distinct even before scroll
+      gsap.set(layer1Ref.current, { y: -36, rotateX: 25, rotateY: -15 });
+      gsap.set(layer2Ref.current, { y: -18, rotateX: 25, rotateY: -15 });
+      gsap.set(layer3Ref.current, { y: 0, rotateX: 25, rotateY: -15 });
+      gsap.set(layer4Ref.current, { y: 18, rotateX: 25, rotateY: -15 });
+      gsap.set(layer5Ref.current, { y: 36, rotateX: 25, rotateY: -15 });
+
+      // Pin container and scrub layers apart vertically with refined travel
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: container,
           start: "top top",
-          end: "+=220%",
+          end: "+=110%",
           pin: true,
-          scrub: 1,
+          scrub: 0.5,
+          anticipatePin: 1,
           onUpdate: (self) => {
             const p = self.progress;
             if (p < 0.2) setActiveLayerIndex(0);
@@ -50,67 +58,42 @@ export function SpcExplodedView() {
       });
 
       // Layer 1 floats high up
-      tl.to(
+      tl.fromTo(
         layer1Ref.current,
-        {
-          y: -140,
-          rotateX: 25,
-          rotateY: -15,
-          scale: 1.05,
-          ease: "power2.out",
-        },
+        { y: -36, rotateX: 25, rotateY: -15, scale: 1 },
+        { y: -150, rotateX: 25, rotateY: -15, scale: 1.05, ease: "power2.out" },
         0
       );
 
       // Layer 2 floats upper-mid
-      tl.to(
+      tl.fromTo(
         layer2Ref.current,
-        {
-          y: -70,
-          rotateX: 25,
-          rotateY: -15,
-          scale: 1.02,
-          ease: "power2.out",
-        },
+        { y: -18, rotateX: 25, rotateY: -15, scale: 1 },
+        { y: -75, rotateX: 25, rotateY: -15, scale: 1.02, ease: "power2.out" },
         0
       );
 
       // Layer 3 stays central anchor
-      tl.to(
+      tl.fromTo(
         layer3Ref.current,
-        {
-          y: 0,
-          rotateX: 25,
-          rotateY: -15,
-          scale: 1,
-          ease: "power2.out",
-        },
+        { y: 0, rotateX: 25, rotateY: -15, scale: 1 },
+        { y: 0, rotateX: 25, rotateY: -15, scale: 1, ease: "power2.out" },
         0
       );
 
       // Layer 4 click-lock highlights & moves lower-mid
-      tl.to(
+      tl.fromTo(
         layer4Ref.current,
-        {
-          y: 70,
-          rotateX: 25,
-          rotateY: -15,
-          scale: 0.98,
-          ease: "power2.out",
-        },
+        { y: 18, rotateX: 25, rotateY: -15, scale: 1 },
+        { y: 75, rotateX: 25, rotateY: -15, scale: 0.98, ease: "power2.out" },
         0
       );
 
       // Layer 5 IXPE drops low
-      tl.to(
+      tl.fromTo(
         layer5Ref.current,
-        {
-          y: 140,
-          rotateX: 25,
-          rotateY: -15,
-          scale: 0.95,
-          ease: "power2.out",
-        },
+        { y: 36, rotateX: 25, rotateY: -15, scale: 1 },
+        { y: 150, rotateX: 25, rotateY: -15, scale: 0.95, ease: "power2.out" },
         0
       );
     }, containerRef);
@@ -206,11 +189,15 @@ export function SpcExplodedView() {
               {/* LAYER 1: UV Wear Layer */}
               <div
                 ref={layer1Ref}
+                onClick={() => setActiveLayerIndex(0)}
+                role="button"
+                tabIndex={0}
+                data-cursor-hover
                 className={cn(
-                  "absolute inset-0 rounded-sm border-2 backdrop-blur-md flex flex-col justify-between p-4 shadow-xl transition-colors duration-300",
+                  "absolute inset-0 rounded-sm border-2 backdrop-blur-md flex flex-col justify-between p-4 shadow-xl transition-all duration-300 cursor-pointer select-none",
                   activeLayerIndex === 0
-                    ? "border-cyan-400 bg-cyan-950/40 shadow-cyan-500/20"
-                    : "border-cyan-500/30 bg-cyan-950/20"
+                    ? "border-cyan-400 bg-cyan-950/60 shadow-cyan-500/30 ring-2 ring-cyan-400/40"
+                    : "border-cyan-500/30 bg-cyan-950/20 hover:border-cyan-400/60"
                 )}
                 style={{
                   transform: "rotateX(25deg) rotateY(-15deg)",
@@ -229,11 +216,15 @@ export function SpcExplodedView() {
               {/* LAYER 2: Decor Film */}
               <div
                 ref={layer2Ref}
+                onClick={() => setActiveLayerIndex(1)}
+                role="button"
+                tabIndex={0}
+                data-cursor-hover
                 className={cn(
-                  "absolute inset-0 rounded-sm border-2 flex flex-col justify-between p-4 shadow-xl transition-colors duration-300",
+                  "absolute inset-0 rounded-sm border-2 flex flex-col justify-between p-4 shadow-xl transition-all duration-300 cursor-pointer select-none",
                   activeLayerIndex === 1
-                    ? "border-amber-400 bg-[#3B291A]/90 shadow-amber-500/20"
-                    : "border-amber-500/30 bg-[#2E2014]/70"
+                    ? "border-amber-400 bg-[#3B291A]/95 shadow-amber-500/30 ring-2 ring-amber-400/40"
+                    : "border-amber-500/30 bg-[#2E2014]/70 hover:border-amber-400/60"
                 )}
                 style={{
                   transform: "rotateX(25deg) rotateY(-15deg)",
@@ -252,11 +243,15 @@ export function SpcExplodedView() {
               {/* LAYER 3: Rigid Stone Core */}
               <div
                 ref={layer3Ref}
+                onClick={() => setActiveLayerIndex(2)}
+                role="button"
+                tabIndex={0}
+                data-cursor-hover
                 className={cn(
-                  "absolute inset-0 rounded-sm border-2 flex flex-col justify-between p-4 shadow-2xl transition-colors duration-300",
+                  "absolute inset-0 rounded-sm border-2 flex flex-col justify-between p-4 shadow-2xl transition-all duration-300 cursor-pointer select-none",
                   activeLayerIndex === 2
-                    ? "border-brand-orange bg-[#1E2229] shadow-brand-orange/30"
-                    : "border-white/20 bg-[#16181D]"
+                    ? "border-brand-orange bg-[#1E2229] shadow-brand-orange/40 ring-2 ring-brand-orange/40"
+                    : "border-white/20 bg-[#16181D] hover:border-brand-orange/40"
                 )}
                 style={{
                   transform: "rotateX(25deg) rotateY(-15deg)",
@@ -280,11 +275,15 @@ export function SpcExplodedView() {
               {/* LAYER 4: Unilin Click-Lock Edge */}
               <div
                 ref={layer4Ref}
+                onClick={() => setActiveLayerIndex(3)}
+                role="button"
+                tabIndex={0}
+                data-cursor-hover
                 className={cn(
-                  "absolute inset-0 rounded-sm border-2 flex flex-col justify-between p-4 shadow-xl transition-colors duration-300",
+                  "absolute inset-0 rounded-sm border-2 flex flex-col justify-between p-4 shadow-xl transition-all duration-300 cursor-pointer select-none",
                   activeLayerIndex === 3
-                    ? "border-emerald-400 bg-emerald-950/40 shadow-emerald-500/20"
-                    : "border-emerald-500/30 bg-emerald-950/20"
+                    ? "border-emerald-400 bg-emerald-950/60 shadow-emerald-500/30 ring-2 ring-emerald-400/40"
+                    : "border-emerald-500/30 bg-emerald-950/20 hover:border-emerald-400/60"
                 )}
                 style={{
                   transform: "rotateX(25deg) rotateY(-15deg)",
@@ -303,11 +302,15 @@ export function SpcExplodedView() {
               {/* LAYER 5: Acoustic IXPE Pad */}
               <div
                 ref={layer5Ref}
+                onClick={() => setActiveLayerIndex(4)}
+                role="button"
+                tabIndex={0}
+                data-cursor-hover
                 className={cn(
-                  "absolute inset-0 rounded-sm border-2 flex flex-col justify-between p-4 shadow-xl transition-colors duration-300",
+                  "absolute inset-0 rounded-sm border-2 flex flex-col justify-between p-4 shadow-xl transition-all duration-300 cursor-pointer select-none",
                   activeLayerIndex === 4
-                    ? "border-indigo-400 bg-indigo-950/40 shadow-indigo-500/20"
-                    : "border-indigo-500/30 bg-indigo-950/20"
+                    ? "border-indigo-400 bg-indigo-950/60 shadow-indigo-500/30 ring-2 ring-indigo-400/40"
+                    : "border-indigo-500/30 bg-indigo-950/20 hover:border-indigo-400/60"
                 )}
                 style={{
                   transform: "rotateX(25deg) rotateY(-15deg)",
@@ -396,3 +399,4 @@ export function SpcExplodedView() {
     </section>
   );
 }
+

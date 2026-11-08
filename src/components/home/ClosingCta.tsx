@@ -144,18 +144,28 @@ Please advise on sample swatches and provide an initial architectural estimate.`
               </p>
             </div>
 
-            <MagneticButton strength={0.4}>
+            <div className="flex flex-col sm:flex-row items-center gap-3">
               <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 px-8 py-4 rounded-sm bg-brand-gold hover:bg-brand-gold-hover text-brand-navy text-xs font-mono uppercase tracking-widest font-bold transition-all duration-300 shadow-xl shadow-brand-gold/25"
+                href="/planner"
+                className="inline-flex items-center gap-2 px-6 py-4 rounded-sm bg-brand-navy-card hover:bg-brand-navy-light text-brand-ivory border border-brand-gold/30 hover:border-brand-gold text-xs font-mono uppercase tracking-widest transition-all duration-300"
               >
-                <MessageSquare className="w-4 h-4 text-brand-navy" />
-                <span>Transmit Specification via WhatsApp</span>
-                <ArrowUpRight className="w-4 h-4" />
+                <span>Launch 3D House Planner</span>
+                <ArrowUpRight className="w-3.5 h-3.5 text-brand-gold" />
               </a>
-            </MagneticButton>
+
+              <MagneticButton strength={0.4}>
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 px-8 py-4 rounded-sm bg-brand-gold hover:bg-brand-gold-hover text-brand-navy text-xs font-mono uppercase tracking-widest font-bold transition-all duration-300 shadow-xl shadow-brand-gold/25"
+                >
+                  <MessageSquare className="w-4 h-4 text-brand-navy" />
+                  <span>Transmit via WhatsApp</span>
+                  <ArrowUpRight className="w-4 h-4" />
+                </a>
+              </MagneticButton>
+            </div>
           </div>
         </div>
       </div>

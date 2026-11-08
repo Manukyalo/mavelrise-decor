@@ -32,8 +32,7 @@ export function Header() {
   const navLinks = [
     { label: t("collections"), href: "/#product-lines" },
     { label: t("projects"), href: "/projects" },
-    { label: t("ceilings"), href: "/#product-lines" },
-    { label: t("wallPanels"), href: "/#product-lines" },
+    { label: "Room Planner", href: "/planner" },
     { label: t("about"), href: "/#how-it-works" },
     { label: t("contact"), href: "/#room-planner" },
   ];

@@ -98,11 +98,10 @@ export function CustomCursor() {
       {/* Floating Outer Architectural Reticle */}
       <div
         ref={ringRef}
-        className={`fixed top-0 left-0 -ml-5 -mt-5 rounded-full border will-change-transform transition-all duration-300 ease-luxury ${
-          isHovered
+        className={`fixed top-0 left-0 -ml-5 -mt-5 rounded-full border will-change-transform transition-all duration-300 ease-luxury ${isHovered
             ? "w-14 h-14 -ml-7 -mt-7 border-brand-gold bg-brand-gold/15 scale-110"
             : "w-10 h-10 border-brand-gold/30"
-        }`}
+          }`}
       />
     </div>
   );

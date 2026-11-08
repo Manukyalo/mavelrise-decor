@@ -24,10 +24,8 @@ import type { Room, SpcColor, QualityTier, PlankLayout } from "@/lib/planner/typ
 const ISO_ANGLE = 30; // degrees from horizontal
 const ISO_X_RATIO = Math.cos((ISO_ANGLE * Math.PI) / 180);
 const ISO_Y_RATIO = Math.sin((ISO_ANGLE * Math.PI) / 180);
-const WALL_HEIGHT_U = 1.5; // isometric wall height in "units"
-
-// ── Scale: 1 metre → pixels (adjustable by zoom) ─────────────────────────────
-const BASE_SCALE = 36; // px per metre at zoom 1
+const WALL_HEIGHT_U = 0.22; // Low sleek architectural curb (avoids blocking rooms)
+const PLINTH_DEPTH_U = 0.35; // Architectural foundation podium depth
 
 // ── Room label font ───────────────────────────────────────────────────────────
 const LABEL_FONT = "'Cormorant Garamond', serif";
@@ -125,41 +123,74 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
       drawnPlanks: Array<{ roomId: string; plankIndex: number }>;
     } | null>(null);
 
-    // ── Camera offset for centering ─────────────────────────────────────────
-    const getOffsets = useCallback(
-      (canvas: HTMLCanvasElement, scale: number): [number, number] => {
-        if (rooms.length === 0) return [canvas.width / 2, canvas.height / 2];
+    // ── Auto-fit scale & centering offsets (pure CSS-pixel space) ───────────
+    const getFitParams = useCallback(
+      (canvas: HTMLCanvasElement): { scale: number; ox: number; oy: number } => {
+        // Use client dimensions so devicePixelRatio doesn't displace the view
+        const cssWidth = canvas.clientWidth || 800;
+        const cssHeight = canvas.clientHeight || 600;
 
-        // Bounding box of all rooms in world space
-        let maxX = 0, maxY = 0;
+        if (rooms.length === 0) {
+          return { scale: 32 * zoomRef.current, ox: cssWidth / 2, oy: cssHeight / 2 };
+        }
+
+        // Bounding box of all rooms in world space (metres)
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
         for (const r of rooms) {
+          minX = Math.min(minX, r.gridX);
+          minY = Math.min(minY, r.gridY);
           maxX = Math.max(maxX, r.gridX + r.widthM);
           maxY = Math.max(maxY, r.gridY + r.lengthM);
         }
 
         if (viewModeRef.current === "top") {
-          return [
-            (canvas.width - maxX * scale) / 2,
-            (canvas.height - maxY * scale) / 2,
-          ];
+          const houseW = Math.max(maxX - minX, 1);
+          const houseH = Math.max(maxY - minY, 1);
+          const baseScale = Math.min(
+            (cssWidth * 0.8) / houseW,
+            (cssHeight * 0.8) / houseH
+          );
+          const effectiveScale = baseScale * zoomRef.current;
+          const ox = cssWidth / 2 - ((minX + maxX) / 2) * effectiveScale;
+          const oy = cssHeight / 2 - ((minY + maxY) / 2) * effectiveScale;
+          return { scale: effectiveScale, ox, oy };
         }
 
-        // Iso: project 4 corners of bounding box to find screen extent
+        // Iso: project all corners of bounding box at scale = 1
+        const h = WALL_HEIGHT_U;
         const corners: Array<[number, number]> = [
-          isoProject(0, 0, 0, scale, 0, 0),
-          isoProject(maxX, 0, 0, scale, 0, 0),
-          isoProject(0, maxY, 0, scale, 0, 0),
-          isoProject(maxX, maxY, 0, scale, 0, 0),
+          isoProject(minX, minY, 0, 1, 0, 0),
+          isoProject(maxX, minY, 0, 1, 0, 0),
+          isoProject(maxX, maxY, 0, 1, 0, 0),
+          isoProject(minX, maxY, 0, 1, 0, 0),
+          isoProject(minX, minY, h, 1, 0, 0),
+          isoProject(maxX, maxY, h, 1, 0, 0),
         ];
+
         const minSX = Math.min(...corners.map(([x]) => x));
         const maxSX = Math.max(...corners.map(([x]) => x));
         const minSY = Math.min(...corners.map(([_, y]) => y));
         const maxSY = Math.max(...corners.map(([_, y]) => y));
 
-        return [
-          canvas.width / 2 - (minSX + maxSX) / 2,
-          canvas.height / 2 - (minSY + maxSY) / 2 + (WALL_HEIGHT_U * scale) / 2,
-        ];
+        const houseSpanX = Math.max(maxSX - minSX, 1);
+        const houseSpanY = Math.max(maxSY - minSY, 1);
+
+        // Auto-scale: fits the entire house inside 78% of the viewport with breathing room
+        const autoScale = Math.min(
+          (cssWidth * 0.78) / houseSpanX,
+          (cssHeight * 0.78) / houseSpanY
+        );
+        const effectiveScale = autoScale * zoomRef.current;
+
+        // Projected center of the house at effectiveScale
+        const houseCenterSX = ((minSX + maxSX) / 2) * effectiveScale;
+        const houseCenterSY = ((minSY + maxSY) / 2) * effectiveScale;
+
+        // Offset places house center exactly at (cssWidth / 2, cssHeight / 2)
+        const ox = cssWidth / 2 - houseCenterSX;
+        const oy = cssHeight / 2 - houseCenterSY;
+
+        return { scale: effectiveScale, ox, oy };
       },
       [rooms]
     );
@@ -379,7 +410,8 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
         ctx.stroke();
 
         if (project === isoProject) {
-          // ── Left wall (front-left face) ──
+          // ── Sleek low architectural curb (gives 3D depth without obscuring floors) ──
+          // Left curb face
           const [wlx0, wly0] = p(x0, y1, 0);
           const [wlx1, wly1] = p(x0, y1, h);
           const [wlx2, wly2] = p(x0, y0, h);
@@ -391,13 +423,13 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
           ctx.lineTo(wlx2, wly2);
           ctx.lineTo(wlx3, wly3);
           ctx.closePath();
-          ctx.fillStyle = darken("#1A2234", 0.6);
+          ctx.fillStyle = "rgba(11, 27, 51, 0.45)";
           ctx.fill();
-          ctx.strokeStyle = "rgba(200,161,90,0.2)";
-          ctx.lineWidth = 0.6;
+          ctx.strokeStyle = "rgba(200, 161, 90, 0.35)";
+          ctx.lineWidth = 0.8;
           ctx.stroke();
 
-          // ── Right wall (front-right face) ──
+          // Right curb face
           const [wrx0, wry0] = p(x1, y0, 0);
           const [wrx1, wry1] = p(x1, y0, h);
           const [wrx2, wry2] = p(x1, y1, h);
@@ -409,49 +441,62 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
           ctx.lineTo(wrx2, wry2);
           ctx.lineTo(wrx3, wry3);
           ctx.closePath();
-          ctx.fillStyle = darken("#1A2234", 0.5);
+          ctx.fillStyle = "rgba(11, 27, 51, 0.35)";
           ctx.fill();
-          ctx.strokeStyle = "rgba(200,161,90,0.2)";
-          ctx.lineWidth = 0.6;
+          ctx.strokeStyle = "rgba(200, 161, 90, 0.35)";
+          ctx.lineWidth = 0.8;
           ctx.stroke();
 
-          // ── Top edge highlight (cut-away ceiling line) ──
-          const [tx0, ty0] = p(x0, y0, h);
-          const [tx1, ty1] = p(x1, y0, h);
-          const [tx2, ty2] = p(x1, y1, h);
-          const [tx3, ty3] = p(x0, y1, h);
-
+          // Delicate gold rim on top of curb
           ctx.beginPath();
-          ctx.moveTo(tx0, ty0);
-          ctx.lineTo(tx1, ty1);
-          ctx.lineTo(tx2, ty2);
-          ctx.lineTo(tx3, ty3);
-          ctx.closePath();
-          ctx.strokeStyle = "rgba(200,161,90,0.5)";
-          ctx.lineWidth = 1.2;
+          ctx.moveTo(wlx2, wly2);
+          ctx.lineTo(wlx1, wly1);
+          ctx.lineTo(wrx2, wry2);
+          ctx.strokeStyle = "rgba(200, 161, 90, 0.55)";
+          ctx.lineWidth = 1;
           ctx.stroke();
         }
 
-        // ── Room label ──
+        // ── Room label badge with glass pill backdrop ──
         const [labelX, labelY] = p(
           x0 + room.widthM / 2,
           y0 + room.lengthM / 2,
-          project === isoProject ? 0.1 : 0
+          project === isoProject ? 0.05 : 0
         );
+
         ctx.save();
-        ctx.font = `600 ${Math.max(10, scale * 0.38)}px ${MONO_FONT}`;
-        ctx.fillStyle = "rgba(246,241,231,0.9)";
+        const roomName = room.name.toUpperCase();
+        const areaText = `${(room.widthM * room.lengthM).toFixed(1)} M²`;
+        const fontSize = Math.max(9, Math.min(12, scale * 0.3));
+
+        ctx.font = `600 ${fontSize}px ${MONO_FONT}`;
+        const nameW = ctx.measureText(roomName).width;
+        const pillW = Math.max(nameW + 16, 68);
+        const pillH = fontSize * 2.3;
+
+        // Frosted glass pill backdrop
+        ctx.fillStyle = "rgba(11, 27, 51, 0.85)";
+        ctx.strokeStyle = "rgba(200, 161, 90, 0.4)";
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        if (typeof ctx.roundRect === "function") {
+          ctx.roundRect(labelX - pillW / 2, labelY - pillH / 2, pillW, pillH, 3);
+        } else {
+          ctx.rect(labelX - pillW / 2, labelY - pillH / 2, pillW, pillH);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        // Room name in ivory
+        ctx.fillStyle = "#F6F1E7";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText(room.name.toUpperCase(), labelX, labelY - scale * 0.1);
+        ctx.fillText(roomName, labelX, labelY - fontSize * 0.45);
 
-        ctx.font = `${Math.max(8, scale * 0.28)}px ${MONO_FONT}`;
-        ctx.fillStyle = "rgba(200,161,90,0.8)";
-        ctx.fillText(
-          `${(room.widthM * room.lengthM).toFixed(1)} M²`,
-          labelX,
-          labelY + scale * 0.2
-        );
+        // Area in champagne gold
+        ctx.font = `500 ${Math.max(7.5, fontSize * 0.82)}px ${MONO_FONT}`;
+        ctx.fillStyle = "#C8A15A";
+        ctx.fillText(areaText, labelX, labelY + fontSize * 0.55);
         ctx.restore();
       },
       [drawFloorTexture, drawPlanksOnFloor]
@@ -468,33 +513,44 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
-        const scale = BASE_SCALE * zoomRef.current;
+        const { scale, ox, oy } = getFitParams(canvas);
         const project = viewModeRef.current === "iso" ? isoProject : topProject;
-        const [ox, oy] = getOffsets(canvas, scale);
 
-        // Clear
+        const dpr = Math.min(
+          typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1,
+          qualityTier === "low" ? 1 : 2
+        );
+
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Background
+        // Fill background
         ctx.fillStyle = "#0B1B33";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Subtle grid dots in background
+        // Reset transform to CSS pixels with DPR scale
+        ctx.scale(dpr, dpr);
+
+        const cssWidth = canvas.clientWidth || canvas.width / dpr;
+        const cssHeight = canvas.clientHeight || canvas.height / dpr;
+
+        // Subtle architectural grid dots in background
         if (qualityTier !== "low") {
-          ctx.fillStyle = "rgba(200,161,90,0.07)";
-          for (let gx = 0; gx < canvas.width; gx += 24) {
-            for (let gy = 0; gy < canvas.height; gy += 24) {
+          ctx.fillStyle = "rgba(200, 161, 90, 0.05)";
+          for (let gx = 12; gx < cssWidth; gx += 28) {
+            for (let gy = 12; gy < cssHeight; gy += 28) {
               ctx.beginPath();
-              ctx.arc(gx, gy, 1, 0, Math.PI * 2);
+              ctx.arc(gx, gy, 0.8, 0, Math.PI * 2);
               ctx.fill();
             }
           }
         }
 
-        // Sort rooms: in iso view, draw back rooms first (painter's algorithm)
+        // Sort rooms: in iso view, back rooms first (painter's algorithm)
         const sortedRooms = [...rooms].sort((a, b) => {
           if (viewModeRef.current === "iso") {
-            return (a.gridX + a.gridY) - (b.gridX + b.gridY);
+            return a.gridX + a.gridY - (b.gridX + b.gridY);
           }
           return 0;
         });
@@ -516,19 +572,23 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
           );
         }
 
-        // HUD: view mode label
+        // HUD view mode badge in top-left
         ctx.save();
-        ctx.font = `10px ${MONO_FONT}`;
-        ctx.fillStyle = "rgba(200,161,90,0.5)";
+        ctx.font = `600 10px ${MONO_FONT}`;
+        ctx.fillStyle = "rgba(200, 161, 90, 0.7)";
         ctx.textAlign = "left";
         ctx.fillText(
-          viewModeRef.current === "iso" ? "ISOMETRIC VIEW" : "FLOOR PLAN — TOP DOWN",
-          12,
-          20
+          viewModeRef.current === "iso"
+            ? "ISOMETRIC CUTAWAY · 30° ORTHOGRAPHIC"
+            : "FLOOR PLAN · 2D TOP-DOWN SCHEMATIC",
+          14,
+          22
         );
         ctx.restore();
+
+        ctx.restore();
       },
-      [rooms, colorMap, qualityTier, getOffsets, drawRoom]
+      [rooms, colorMap, qualityTier, getFitParams, drawRoom]
     );
 
     // ── Animation loop ───────────────────────────────────────────────────────
@@ -640,13 +700,12 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
 
       const ro = new ResizeObserver(() => {
         const { width, height } = parent.getBoundingClientRect();
+        if (width === 0 || height === 0) return;
         const dpr = Math.min(window.devicePixelRatio ?? 1, qualityTier === "low" ? 1 : 2);
-        canvas.width = width * dpr;
-        canvas.height = height * dpr;
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
         canvas.style.width = `${width}px`;
         canvas.style.height = `${height}px`;
-        const ctx = canvas.getContext("2d");
-        if (ctx) ctx.scale(dpr, dpr);
         render();
       });
 

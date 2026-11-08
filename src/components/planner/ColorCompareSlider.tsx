@@ -33,18 +33,22 @@ function renderColorSlice(
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
 
-  const scale = 32;
   const color = getColorById(colorId);
 
   // Find bounding box
-  let maxX = 0, maxY = 0;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   for (const r of rooms) {
+    minX = Math.min(minX, r.gridX);
+    minY = Math.min(minY, r.gridY);
     maxX = Math.max(maxX, r.gridX + r.widthM);
     maxY = Math.max(maxY, r.gridY + r.lengthM);
   }
+  const houseW = Math.max(maxX - minX, 1);
+  const houseH = Math.max(maxY - minY, 1);
+  const scale = Math.min((canvas.width * 0.82) / houseW, (canvas.height * 0.82) / houseH);
 
-  const ox = (canvas.width - maxX * scale) / 2;
-  const oy = (canvas.height - maxY * scale) / 2;
+  const ox = (canvas.width - (maxX + minX) * scale) / 2;
+  const oy = (canvas.height - (maxY + minY) * scale) / 2;
 
   ctx.save();
   // Clip to slice boundaries

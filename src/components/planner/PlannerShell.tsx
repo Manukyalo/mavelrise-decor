@@ -225,7 +225,7 @@ export function PlannerShell() {
 
   // ── Design screen ────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-brand-navy flex flex-col pt-20">
+    <div className="fixed inset-0 top-[68px] sm:top-[76px] bg-brand-navy flex flex-col z-40 overflow-hidden">
       {/* Top bar */}
       <div className="border-b border-brand-gold/15 bg-brand-navy-deep px-4 py-2 flex items-center justify-between gap-4 shrink-0">
         <div className="flex items-center gap-3">

@@ -1,0 +1,78 @@
+{
+  "navigation": {
+    "collections": "Collections",
+    "ceilings": "Ceilings & Lighting",
+    "wallPanels": "Acoustic & Wall Panels",
+    "projects": "Selected Works",
+    "custom": "Bespoke Fabrication",
+    "about": "The Studio",
+    "contact": "Inquiries",
+    "requestQuote": "Request Estimate",
+    "directConcierge": "Concierge Desk"
+  },
+  "brand": {
+    "name": "MarvelRise Decor",
+    "tagline": "Architectural Finishing & Bespoke Ceilings",
+    "city": "Nairobi, Kenya"
+  },
+  "hero": {
+    "badge": "Architectural Interiors • Nairobi & East Africa",
+    "titleLine1": "SCULPTING SPACES",
+    "titleLine2": "WITH PRECISION",
+    "description": "Masters of gypsum architecture, acoustic timber fluting, and bespoke architectural illumination for discerning residences, corporate sanctuaries, and luxury retreats.",
+    "ctaPrimary": "Explore Portfolio",
+    "ctaSecondary": "Consult an Architect",
+    "scrollPrompt": "Scroll to experience depth"
+  },
+  "stats": {
+    "stat1Value": "380+",
+    "stat1Label": "Architectural Commissions",
+    "stat2Value": "14",
+    "stat2Label": "Years Master Craftsmanship",
+    "stat3Value": "99.4%",
+    "stat3Label": "On-Time Handover Rate",
+    "stat4Value": "48",
+    "stat4Label": "Hours Quote Turnaround"
+  },
+  "showcase": {
+    "title": "Crafted For Discerning Visionaries",
+    "subtitle": "Precision finishes engineered down to the millimeter.",
+    "parallaxTagline": "Three Dimensional Craft",
+    "horizontalTitle": "Curated Finishes & Modules",
+    "horizontalSubtitle": "Drag or scroll through our proprietary architectural systems"
+  },
+  "cards": {
+    "item1Title": "Acoustic Gypsum Ceilings",
+    "item1Category": "Ceiling Architecture",
+    "item1Desc": "Multi-tier floating rafts with concealed magnetic track lighting and acoustic dampening cores.",
+    "item2Title": "Natural Oak Slat Panelling",
+    "item2Category": "Wall Architecture",
+    "item2Desc": "Calibrated fluted timber with sound absorption felt for boardroom acoustics and penthouse lounges.",
+    "item3Title": "Architectural Linear Profiles",
+    "item3Category": "Illumination Systems",
+    "item3Desc": "Diffused micro-prism LED extrusions with warm dimming calibrated to natural diurnal cycles.",
+    "item4Title": "Cornice & Moulding Artistry",
+    "item4Category": "Neoclassical & Contemporary",
+    "item4Desc": "Hand-cast architectural plaster mouldings tailored for high-ceilinged spaces."
+  },
+  "whatsapp": {
+    "status": "Online • Direct Showroom Line",
+    "chatAction": "Message on WhatsApp",
+    "prefill": "Hello MarvelRise Decor, I would like to consult with your design team regarding an interior project."
+  },
+  "footer": {
+    "tagline": "Transforming spatial volumes into architectural masterpieces across East Africa.",
+    "showroomTitle": "Nairobi Showroom",
+    "showroomId": "Enterprise Road, Industrial Area / Westlands Design Hub",
+    "city": "Nairobi, Kenya",
+    "hoursTitle": "Operating Hours",
+    "hoursWeekdays": "Monday – Friday: 08:00 – 18:00 EAT",
+    "hoursSaturday": "Saturday: 09:00 – 16:00 EAT",
+    "hoursSunday": "Sunday: By Prior Appointment Only",
+    "contactTitle": "Direct Channels",
+    "viewOnMaps": "Open in Google Maps",
+    "rights": "All rights reserved. Designed for architectural permanence.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  }
+}

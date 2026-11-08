@@ -1,0 +1,219 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { Link, usePathname, useRouter } from "@/i18n/routing";
+import { Menu, X, ArrowUpRight, Compass, ShieldCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+export function Header() {
+  const t = useTranslations("navigation");
+  const brandT = useTranslations("brand");
+  const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 40);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const switchLocale = (newLocale: "en" | "sw") => {
+    if (newLocale === locale) return;
+    router.replace(pathname, { locale: newLocale });
+  };
+
+  const navLinks = [
+    { label: t("collections"), href: "#collections" },
+    { label: t("ceilings"), href: "#ceilings" },
+    { label: t("wallPanels"), href: "#wall-panels" },
+    { label: t("projects"), href: "#projects" },
+    { label: t("about"), href: "#studio" },
+    { label: t("contact"), href: "#contact" },
+  ];
+
+  return (
+    <>
+      <header
+        className={cn(
+          "fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-luxury",
+          isScrolled
+            ? "py-3 glass-panel border-b border-white/10 shadow-2xl shadow-black/80"
+            : "py-6 bg-transparent"
+        )}
+      >
+        <div className="container mx-auto flex items-center justify-between">
+          {/* Brand Logo & MRD Mark */}
+          <Link
+            href="/"
+            className="group flex items-center gap-3.5 focus:outline-none"
+            aria-label="MarvelRise Decor Homepage"
+          >
+            {/* Precision Architectural Mark */}
+            <div className="relative w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-sm bg-brand-black-elevated border border-white/15 transition-all duration-300 group-hover:border-brand-orange/60">
+              <svg
+                viewBox="0 0 40 40"
+                className="w-6 h-6 fill-none stroke-current text-brand-white transition-colors duration-300 group-hover:text-brand-orange"
+              >
+                <path
+                  d="M 20 4 L 36 20 L 20 36 L 4 20 Z"
+                  strokeWidth="1.2"
+                  className="stroke-brand-black-muted group-hover:stroke-brand-orange/40 transition-colors"
+                />
+                <path
+                  d="M 11 26 L 11 14 L 16 21 L 20 14 L 24 21 L 29 14 L 29 26"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <circle cx="20" cy="14" r="1.5" className="fill-brand-orange stroke-none" />
+              </svg>
+              <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-brand-green border border-brand-black" />
+            </div>
+
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5">
+                <span className="font-display text-lg md:text-xl font-normal tracking-[0.18em] text-brand-white uppercase leading-none">
+                  MarvelRise
+                </span>
+                <span className="text-[10px] font-mono px-1 py-0.2 bg-brand-orange/15 text-brand-orange border border-brand-orange/30 rounded-xs">
+                  MRD
+                </span>
+              </div>
+              <span className="text-[9px] md:text-[10px] font-mono tracking-[0.25em] text-brand-sand-300 uppercase leading-none mt-1">
+                Decor • Nairobi
+              </span>
+            </div>
+          </Link>
+
+          {/* Desktop Navigation Links */}
+          <nav
+            aria-label="Primary"
+            className="hidden lg:flex items-center gap-8 text-xs font-mono tracking-wider uppercase text-brand-sand-300"
+          >
+            {navLinks.map((item, idx) => (
+              <a
+                key={idx}
+                href={item.href}
+                className="relative py-1 transition-colors duration-200 hover:text-brand-white group"
+              >
+                <span>{item.label}</span>
+                <span className="absolute bottom-0 left-0 w-0 h-[1.5px] bg-brand-orange transition-all duration-300 ease-out group-hover:w-full" />
+              </a>
+            ))}
+          </nav>
+
+          {/* Header Actions: Language Switcher + Request Quote */}
+          <div className="flex items-center gap-3 md:gap-4">
+            {/* Language Switcher Pill */}
+            <div
+              className="flex items-center rounded-full p-0.5 bg-brand-black-elevated/90 border border-white/10 text-[11px] font-mono tracking-wider"
+              role="radiogroup"
+              aria-label="Language selection"
+            >
+              <button
+                type="button"
+                onClick={() => switchLocale("en")}
+                className={cn(
+                  "px-2.5 py-1 rounded-full transition-all duration-300",
+                  locale === "en"
+                    ? "bg-brand-white text-brand-black font-semibold shadow-sm"
+                    : "text-brand-sand-300 hover:text-brand-white"
+                )}
+                aria-checked={locale === "en"}
+                role="radio"
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => switchLocale("sw")}
+                className={cn(
+                  "px-2.5 py-1 rounded-full transition-all duration-300",
+                  locale === "sw"
+                    ? "bg-brand-orange text-brand-white font-semibold shadow-sm"
+                    : "text-brand-sand-300 hover:text-brand-white"
+                )}
+                aria-checked={locale === "sw"}
+                role="radio"
+              >
+                SW
+              </button>
+            </div>
+
+            {/* Request Quote Button */}
+            <a
+              href="#contact"
+              className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-sm bg-brand-sand-50/10 hover:bg-brand-orange text-brand-white hover:text-white border border-white/15 hover:border-brand-orange text-xs font-mono uppercase tracking-widest transition-all duration-300 shadow-sm"
+            >
+              <span>{t("requestQuote")}</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </a>
+
+            {/* Mobile Menu Hamburger */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-2 rounded-sm bg-brand-black-elevated text-brand-white border border-white/10 hover:border-white/20 focus:outline-none"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileMenuOpen}
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Mobile Drawer Navigation */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-40 lg:hidden bg-brand-black/95 backdrop-blur-2xl flex flex-col pt-24 pb-8 px-6 justify-between animate-fadeIn"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="space-y-6">
+            <div className="flex items-center justify-between pb-4 border-b border-white/10 text-xs font-mono uppercase tracking-widest text-brand-sand-400">
+              <span>{brandT("name")}</span>
+              <span className="text-brand-orange">Nairobi</span>
+            </div>
+
+            <nav className="flex flex-col gap-4 text-xl font-display uppercase tracking-widest text-brand-white">
+              {navLinks.map((item, idx) => (
+                <a
+                  key={idx}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="py-2 border-b border-white/5 hover:text-brand-orange transition-colors flex items-center justify-between"
+                >
+                  <span>{item.label}</span>
+                  <ArrowUpRight className="w-4 h-4 text-brand-sand-400" />
+                </a>
+              ))}
+            </nav>
+          </div>
+
+          <div className="space-y-4 pt-6 border-t border-white/10">
+            <a
+              href="#contact"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-sm bg-brand-orange text-brand-white text-xs font-mono uppercase tracking-widest font-semibold"
+            >
+              <span>{t("requestQuote")}</span>
+              <ArrowUpRight className="w-4 h-4" />
+            </a>
+
+            <div className="text-center text-[10px] font-mono tracking-widest text-brand-black-muted uppercase">
+              Enterprise Road • Nairobi, Kenya
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

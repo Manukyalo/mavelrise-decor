@@ -1,0 +1,78 @@
+{
+  "navigation": {
+    "collections": "Mikusanyiko",
+    "ceilings": "Dari na Taa",
+    "wallPanels": "Kuta na Paneli",
+    "projects": "Kazi Zilizokamilika",
+    "custom": "Uundaji Maalumu",
+    "about": "Kuhusu Sisi",
+    "contact": "Mawasiliano",
+    "requestQuote": "Omba Makadirio",
+    "directConcierge": "Dawati la Ushauri"
+  },
+  "brand": {
+    "name": "MarvelRise Decor",
+    "tagline": "Ujenzi wa Dari na Mapambo ya Ndani ya Kisasa",
+    "city": "Nairobi, Kenya"
+  },
+  "hero": {
+    "badge": "Mapambo ya Ndani ya Kisasa • Nairobi na Afrika Mashariki",
+    "titleLine1": "KUCHONGA MAENEO",
+    "titleLine2": "KWA UMAKINI MKUU",
+    "description": "Mabingwa wa dari za gypsum, paneli za mbao zinazopunguza mwangwi, na mifumo maridadi ya taa za kisasa kwa ajili ya makazi ya kifahari, ofisi za kisasa na hoteli.",
+    "ctaPrimary": "Tazama Kazi Zetu",
+    "ctaSecondary": "Wasiliana na Mtaalamu",
+    "scrollPrompt": "Sogeza chini kushuhudia uzuri"
+  },
+  "stats": {
+    "stat1Value": "380+",
+    "stat1Label": "Miradi ya Majengo",
+    "stat2Value": "14",
+    "stat2Label": "Miaka ya Uzoefu na Ufundi",
+    "stat3Value": "99.4%",
+    "stat3Label": "Uwasilishaji kwa Wakati",
+    "stat4Value": "48",
+    "stat4Label": "Masaa ya Kupokea Makadirio"
+  },
+  "showcase": {
+    "title": "Imeundwa kwa Wanaothamini Ubora wa Juu",
+    "subtitle": "Kazi iliyopimwa kwa milimita na umakini usiolinganishwa.",
+    "parallaxTagline": "Sanaa ya Tabaka Tatu",
+    "horizontalTitle": "Sampuli na Mifumo Yetu Mahususi",
+    "horizontalSubtitle": "Vuta au sogeza kushoto kuona kazi na vifaa vyetu"
+  },
+  "cards": {
+    "item1Title": "Dari za Gypsum Zisizo na Mwangwi",
+    "item1Category": "Usanifu wa Dari",
+    "item1Desc": "Dari zinazoelea zenye tabaka nyingi pamoja na mfumo wa taa za siri na kuzuia kelele.",
+    "item2Title": "Paneli za Mbao za Asili",
+    "item2Category": "Usanifu wa Kuta",
+    "item2Desc": "Mbao zilizochongwa kwa ustadi zikiwa na tabaka maalum la kuzuia sauti kwa vyumba vya mikutano na sebule.",
+    "item3Title": "Mifumo ya Taa za Kisasa",
+    "item3Category": "Mwangaza wa Majengo",
+    "item3Desc": "Mifumo ya taa za LED zinazoweza kubadilika kulingana na mwanga wa mchana na usiku.",
+    "item4Title": "Mifumo ya Cornice na Plasta",
+    "item4Category": "Mitindo ya Kisasa na ya Jadi",
+    "item4Desc": "Mapambo ya plasta yaliyotengenezwa kwa mikono mahususi kwa dari za urefu mkubwa."
+  },
+  "whatsapp": {
+    "status": "Tupo Hewani • Dawati la Moja kwa Moja",
+    "chatAction": "Tuma Ujumbe WhatsApp",
+    "prefill": "Hujambo MarvelRise Decor, ningependa kuongea na wataalamu wenu kuhusu mradi wangu wa mapambo ya ndani."
+  },
+  "footer": {
+    "tagline": "Kubadilisha muundo wa vyumba vyako kuwa kazi ya sanaa ya kudumu kote Afrika Mashariki.",
+    "showroomTitle": "Chumba cha Maonyesho Nairobi",
+    "showroomId": "Enterprise Road, Industrial Area / Westlands Design Hub",
+    "city": "Nairobi, Kenya",
+    "hoursTitle": "Muda wa Kazi",
+    "hoursWeekdays": "Jumatatu – Ijumaa: 08:00 – 18:00 EAT",
+    "hoursSaturday": "Jumamosi: 09:00 – 16:00 EAT",
+    "hoursSunday": "Jumapili: Kwa Miadi Maalumu Pekee",
+    "contactTitle": "Mawasiliano ya Moja kwa Moja",
+    "viewOnMaps": "Fungua Kwenye Google Maps",
+    "rights": "Haki zote zimehifadhiwa. Kazi iliyojengwa kudumu vizazi na vizazi.",
+    "privacy": "Sera ya Faragha",
+    "terms": "Vigezo na Masharti"
+  }
+}

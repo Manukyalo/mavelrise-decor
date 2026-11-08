@@ -7,6 +7,7 @@ import { useTilt } from "@/hooks/useTilt";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Link } from "@/i18n/routing";
 
 interface HeroRoomTransformationProps {
   headlineLine1?: string;
@@ -191,13 +192,13 @@ export function HeroRoomTransformation({
         {/* CTAs */}
         <div className="flex items-center gap-3 shrink-0">
           <MagneticButton strength={0.4}>
-            <a
+            <Link
               href="/planner"
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-sm bg-brand-gold hover:bg-brand-gold-hover text-brand-navy text-xs font-mono uppercase tracking-widest font-bold transition-all duration-300 shadow-xl shadow-brand-gold/25 group"
             >
               <span>{ctaText}</span>
               <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </a>
+            </Link>
           </MagneticButton>
 
           <a

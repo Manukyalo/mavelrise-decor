@@ -46,9 +46,9 @@ function detectQualityTier(): QualityTier {
 }
 
 export function PlannerShell() {
-  // ── State: Preloaded with 2-Bedroom architectural layout for instant 3D view ──
+  // ── State: Preloaded with 3-Bedroom architectural layout for instant 3D view ──
   const [rooms, setRooms] = useState<Room[]>(() =>
-    TEMPLATES["2bed"].map((r) => ({ ...r, id: nanoid() }))
+    TEMPLATES["3bed"].map((r) => ({ ...r, id: nanoid() }))
   );
   const [globalColorId, setGlobalColorId] = useState(DEFAULT_COLOR_ID);
   const [perRoomColors, setPerRoomColors] = useState(false);

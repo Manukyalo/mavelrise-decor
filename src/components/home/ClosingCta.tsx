@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 import { ArrowUpRight, Sparkles, CheckCircle2, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Link } from "@/i18n/routing";
 
 export function ClosingCta() {
   const [spaceType, setSpaceType] = useState("Living Room Sanctuary");
@@ -145,13 +146,13 @@ Please advise on sample swatches and provide an initial architectural estimate.`
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-3">
-              <a
+              <Link
                 href="/planner"
                 className="inline-flex items-center gap-2 px-6 py-4 rounded-sm bg-brand-navy-card hover:bg-brand-navy-light text-brand-ivory border border-brand-gold/30 hover:border-brand-gold text-xs font-mono uppercase tracking-widest transition-all duration-300"
               >
                 <span>Launch 3D House Planner</span>
                 <ArrowUpRight className="w-3.5 h-3.5 text-brand-gold" />
-              </a>
+              </Link>
 
               <MagneticButton strength={0.4}>
                 <a

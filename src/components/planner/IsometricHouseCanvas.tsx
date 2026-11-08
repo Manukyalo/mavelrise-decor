@@ -698,7 +698,7 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
       const parent = canvas.parentElement;
       if (!parent) return;
 
-      const ro = new ResizeObserver(() => {
+      const updateSize = () => {
         const { width, height } = parent.getBoundingClientRect();
         if (width === 0 || height === 0) return;
         const dpr = Math.min(window.devicePixelRatio ?? 1, qualityTier === "low" ? 1 : 2);
@@ -707,8 +707,10 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
         canvas.style.width = `${width}px`;
         canvas.style.height = `${height}px`;
         render();
-      });
+      };
 
+      updateSize();
+      const ro = new ResizeObserver(updateSize);
       ro.observe(parent);
       return () => ro.disconnect();
     }, [render, qualityTier]);

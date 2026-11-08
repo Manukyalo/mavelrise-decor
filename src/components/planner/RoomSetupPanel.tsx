@@ -46,7 +46,7 @@ function ftToM(ft: number) { return parseFloat((ft * 0.3048).toFixed(2)); }
 function mToFt(m: number)  { return parseFloat((m * 3.28084).toFixed(2)); }
 
 export function RoomSetupPanel({ rooms, onRoomsChange, onConfirm, unit, onUnitChange }: Props) {
-  const [step, setStep] = useState<"template" | "rooms">("template");
+  const [step, setStep] = useState<"template" | "rooms">(rooms.length > 0 ? "rooms" : "template");
   const [addForm, setAddForm] = useState({
     name: "",
     type: "living" as Room["type"],

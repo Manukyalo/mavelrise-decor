@@ -30,6 +30,7 @@ import { SpcColorPicker } from "./SpcColorPicker";
 import { PlankQuotePanel } from "./PlankQuotePanel";
 import { ColorCompareSlider } from "./ColorCompareSlider";
 import { IsometricHouseCanvas, type IsometricCanvasRef } from "./IsometricHouseCanvas";
+import { TEMPLATES } from "@/lib/planner/templates";
 
 type PlannerTab = "rooms" | "colours" | "quote" | "compare";
 type ViewMode = "iso" | "top";
@@ -45,12 +46,13 @@ function detectQualityTier(): QualityTier {
 }
 
 export function PlannerShell() {
-  // ── State ────────────────────────────────────────────────────────────────
-  const [step, setStep] = useState<"setup" | "design">("setup");
-  const [rooms, setRooms] = useState<Room[]>([]);
+  // ── State: Preloaded with 2-Bedroom architectural layout for instant 3D view ──
+  const [rooms, setRooms] = useState<Room[]>(() =>
+    TEMPLATES["2bed"].map((r) => ({ ...r, id: nanoid() }))
+  );
   const [globalColorId, setGlobalColorId] = useState(DEFAULT_COLOR_ID);
   const [perRoomColors, setPerRoomColors] = useState(false);
-  const [tab, setTab] = useState<PlannerTab>("rooms");
+  const [tab, setTab] = useState<PlannerTab>("colours");
   const [viewMode, setViewMode] = useState<ViewMode>("iso");
   const [zoom, setZoom] = useState(1);
   const [unit, setUnit] = useState<MeasurementUnit>("m");
@@ -119,12 +121,10 @@ export function PlannerShell() {
     }
   }, [effectiveRooms, resolvedColorMap, reducedMotion]);
 
-  // ── Confirm room setup and move to design ────────────────────────────────
+  // ── Confirm room setup and move to finishes ─────────────────────────────
   const handleConfirmRooms = useCallback(() => {
     if (rooms.length === 0) return;
-    setStep("design");
     setTab("colours");
-    // After short delay, trigger cinematic entry — scroll canvas into view
     setTimeout(() => {
       canvasRef.current?.setView("iso");
     }, 300);
@@ -176,68 +176,26 @@ export function PlannerShell() {
 
   // ── Sidebar tabs config ──────────────────────────────────────────────────
   const sidebarTabs: Array<{ id: PlannerTab; icon: React.ReactNode; label: string }> = [
-    { id: "rooms", icon: <Map className="w-4 h-4" />, label: "Rooms" },
     { id: "colours", icon: <Layers className="w-4 h-4" />, label: "Colour" },
+    { id: "rooms", icon: <Map className="w-4 h-4" />, label: "Rooms" },
     { id: "quote", icon: <Calculator className="w-4 h-4" />, label: "Quote" },
     { id: "compare", icon: <SlidersHorizontal className="w-4 h-4" />, label: "Compare" },
   ];
 
-  // ── Setup screen ─────────────────────────────────────────────────────────
-  if (step === "setup") {
-    return (
-      <div className="min-h-screen bg-brand-navy pt-28 pb-16 px-4">
-        <div className="container mx-auto max-w-2xl">
-          {/* Page header */}
-          <div className="mb-10 space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-navy-elevated border border-brand-gold/30 text-[10px] font-mono tracking-widest text-brand-gold uppercase">
-              <span className="w-1.5 h-1.5 rounded-full bg-brand-gold animate-pulse" />
-              <span>Isometric Room Planner · Beta</span>
-            </div>
-            <h1 className="font-display text-4xl sm:text-5xl font-light text-brand-ivory uppercase leading-tight">
-              Design Your <span className="italic text-brand-gold">Space</span>
-            </h1>
-            <p className="text-sm font-sans text-brand-ivory/60 max-w-lg leading-relaxed">
-              Enter your room measurements and watch your house come to life as an
-              architectural cutaway. Pick SPC colours, see planks laid in real time,
-              and get an instant box count — ready for the site survey.
-            </p>
-          </div>
-
-          {/* Room setup card */}
-          <div className="p-6 sm:p-8 rounded-sm bg-brand-navy-card border border-brand-gold/20 shadow-2xl">
-            <RoomSetupPanel
-              rooms={rooms}
-              onRoomsChange={setRooms}
-              onConfirm={handleConfirmRooms}
-              unit={unit}
-              onUnitChange={setUnit}
-            />
-          </div>
-
-          <p className="mt-6 text-[11px] font-mono text-brand-ivory/30 text-center leading-relaxed">
-            This is a schematic planner — not a surveyed architectural drawing.
-            All dimensions are confirmed at the site visit.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Design screen ────────────────────────────────────────────────────────
   return (
-    <div className="fixed inset-0 top-[68px] sm:top-[76px] bg-brand-navy flex flex-col z-40 overflow-hidden">
+    <div className="fixed inset-0 top-[72px] sm:top-[80px] bg-brand-navy flex flex-col z-40 overflow-hidden">
       {/* Top bar */}
-      <div className="border-b border-brand-gold/15 bg-brand-navy-deep px-4 py-2 flex items-center justify-between gap-4 shrink-0">
+      <div className="border-b border-brand-gold/15 bg-brand-navy-deep px-4 py-2.5 flex items-center justify-between gap-4 shrink-0">
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => { setStep("setup"); setTab("rooms"); }}
-            className="text-[11px] font-mono text-brand-ivory/50 hover:text-brand-ivory uppercase tracking-wider transition-colors"
+            onClick={() => setTab("rooms")}
+            className="text-[11px] font-mono text-brand-gold hover:text-brand-gold-light uppercase tracking-wider transition-colors flex items-center gap-1 font-semibold"
           >
-            ← Edit Rooms
+            <span>← Edit Rooms &amp; Presets</span>
           </button>
           <div className="w-px h-4 bg-brand-gold/20" />
-          <span className="text-[11px] font-mono text-brand-gold/70 uppercase tracking-wider">
+          <span className="text-[11px] font-mono text-brand-ivory/70 uppercase tracking-wider">
             {rooms.length} room{rooms.length !== 1 ? "s" : ""} ·{" "}
             {rooms.reduce((s, r) => s + r.widthM * r.lengthM, 0).toFixed(1)} m²
           </span>

@@ -21,3 +21,4 @@ export interface MotionComponentBaseProps {
   className?: string;
   children?: React.ReactNode;
 }
+

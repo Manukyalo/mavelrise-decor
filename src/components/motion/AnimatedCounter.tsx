@@ -64,3 +64,4 @@ export function AnimatedCounter({
     </span>
   );
 }
+

@@ -8,7 +8,8 @@
     "about": "The Studio",
     "contact": "Inquiries",
     "requestQuote": "Request Estimate",
-    "directConcierge": "Concierge Desk"
+    "directConcierge": "Concierge Desk",
+    "portal": "Client Portal"
   },
   "brand": {
     "name": "MarvelRise Decor",
@@ -54,6 +55,36 @@
     "item4Title": "Cornice & Moulding Artistry",
     "item4Category": "Neoclassical & Contemporary",
     "item4Desc": "Hand-cast architectural plaster mouldings tailored for high-ceilinged spaces."
+  },
+  "auth": {
+    "loginTitle": "Atelier Client Portal",
+    "loginSubtitle": "Access your architectural blueprints, fabrication milestones, and direct project manager channels.",
+    "registerTitle": "Request Project Access",
+    "registerSubtitle": "Create an atelier account to track your ongoing installation and access technical specifications.",
+    "fullNameLabel": "Full Name / Architectural Firm",
+    "emailLabel": "Professional Email",
+    "passwordLabel": "Password",
+    "confirmPasswordLabel": "Confirm Password",
+    "signInBtn": "Authenticate Credentials",
+    "registerBtn": "Submit Registration",
+    "submitting": "Authenticating...",
+    "noAccount": "Commissioning a project for the first time?",
+    "hasAccount": "Already registered with MarvelRise Atelier?",
+    "requestAccess": "Request Access",
+    "signInLink": "Sign In to Atelier",
+    "returnHome": "Return to Overview"
+  },
+  "portal": {
+    "badge": "Verified Client Environment",
+    "title": "Atelier Project Portal",
+    "subtitle": "Active architectural finishes, acoustic schedules, and handover timelines.",
+    "welcome": "Session Authenticated",
+    "activeCommissions": "Active Commissions",
+    "completedMilestones": "Fabrication Milestones",
+    "technicalDocs": "Approved Blueprints",
+    "emptyNotice": "No active installations on record yet. Contact your project lead to link your architectural drawings.",
+    "initiateBrief": "Initiate New Architectural Brief",
+    "signOut": "Terminate Session"
   },
   "whatsapp": {
     "status": "Online • Direct Showroom Line",

@@ -147,6 +147,14 @@ export function Header() {
               </button>
             </div>
 
+            {/* Client Portal Link */}
+            <Link
+              href="/portal"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-sm text-brand-sand-300 hover:text-white border border-white/10 hover:border-white/30 text-xs font-mono uppercase tracking-wider transition-colors"
+            >
+              <span>{t("portal")}</span>
+            </Link>
+
             {/* Request Quote Button */}
             <a
               href="#contact"
@@ -199,6 +207,15 @@ export function Header() {
           </div>
 
           <div className="space-y-4 pt-6 border-t border-white/10">
+            <Link
+              href="/portal"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-sm bg-brand-black border border-white/15 text-brand-sand-200 text-xs font-mono uppercase tracking-widest font-semibold"
+            >
+              <span>{t("portal")}</span>
+              <ArrowUpRight className="w-4 h-4" />
+            </Link>
+
             <a
               href="#contact"
               onClick={() => setMobileMenuOpen(false)}
@@ -217,3 +234,4 @@ export function Header() {
     </>
   );
 }
+

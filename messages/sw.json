@@ -8,7 +8,8 @@
     "about": "Kuhusu Sisi",
     "contact": "Mawasiliano",
     "requestQuote": "Omba Makadirio",
-    "directConcierge": "Dawati la Ushauri"
+    "directConcierge": "Dawati la Ushauri",
+    "portal": "Tovuti ya Wateja"
   },
   "brand": {
     "name": "MarvelRise Decor",
@@ -54,6 +55,36 @@
     "item4Title": "Mifumo ya Cornice na Plasta",
     "item4Category": "Mitindo ya Kisasa na ya Jadi",
     "item4Desc": "Mapambo ya plasta yaliyotengenezwa kwa mikono mahususi kwa dari za urefu mkubwa."
+  },
+  "auth": {
+    "loginTitle": "Lango la Wateja wa Atelier",
+    "loginSubtitle": "Fikia michoro ya usanifu, hatua za ujenzi, na mawasiliano ya moja kwa moja na wasimamizi wa mradi.",
+    "registerTitle": "Omba Kuingia Kwenye Mradi",
+    "registerSubtitle": "Fungua akaunti ya atelier ili kufuatilia mradi wako na kupata nyaraka za kiufundi.",
+    "fullNameLabel": "Jina Kamili / Kampuni ya Usanifu",
+    "emailLabel": "Barua Pepe Rasmi",
+    "passwordLabel": "Nenosiri",
+    "confirmPasswordLabel": "Thibitisha Nenosiri",
+    "signInBtn": "Ingia Kwenye Tovuti",
+    "registerBtn": "Wasilisha Usajili",
+    "submitting": "Inathibitisha...",
+    "noAccount": "Je, unajiunga nasi kwa mara ya kwanza?",
+    "hasAccount": "Je, tayari una akaunti ya MarvelRise Atelier?",
+    "requestAccess": "Omba Kujiunga",
+    "signInLink": "Ingia Atelier",
+    "returnHome": "Rudi Mwanzoni"
+  },
+  "portal": {
+    "badge": "Eneo Lililothibitishwa la Mteja",
+    "title": "Tovuti ya Miradi ya Atelier",
+    "subtitle": "Kazi zinazoendelea, ratiba za ujenzi, na makabidhiano ya miradi.",
+    "welcome": "Umeingia Kikamilifu",
+    "activeCommissions": "Miradi Inayoendelea",
+    "completedMilestones": "Hatua Zilizokamilika",
+    "technicalDocs": "Michoro Iliyoidhinishwa",
+    "emptyNotice": "Bado hakuna kumbukumbu za kazi zilizounganishwa na akaunti hii. Wasiliana na kiongozi wa mradi kuunganisha michoro yako.",
+    "initiateBrief": "Anzisha Maombi ya Mradi Mpya",
+    "signOut": "Ondoka Kwenye Akaunti"
   },
   "whatsapp": {
     "status": "Tupo Hewani • Dawati la Moja kwa Moja",

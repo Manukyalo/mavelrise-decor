@@ -29,3 +29,4 @@ export function PageTransition({ children }: PageTransitionProps) {
 
   return <div ref={containerRef}>{children}</div>;
 }
+

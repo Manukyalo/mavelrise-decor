@@ -55,6 +55,8 @@ interface Props {
   rotation?: 0 | 90 | 180 | 270;
   showFurniture?: boolean;
   unit?: MeasurementUnit;
+  selectedRoomId?: string | null;
+  onSelectRoom?: (roomId: string) => void;
   onPlankProgress?: (laid: number, total: number) => void;
   onAnimationComplete?: () => void;
   onToggleViewMode?: () => void;
@@ -132,6 +134,8 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
       rotation = 0,
       showFurniture = true,
       unit = "m",
+      selectedRoomId = null,
+      onSelectRoom,
       onPlankProgress,
       onAnimationComplete,
       onToggleViewMode,
@@ -144,6 +148,7 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
     const zoomRef = useRef(zoom);
     const rotationRef = useRef<0 | 90 | 180 | 270>(rotation);
     const showFurnitureRef = useRef(showFurniture);
+    const selectedRoomIdRef = useRef<string | null>(selectedRoomId);
 
     const animRef = useRef<number | null>(null);
     const animStateRef = useRef<{
@@ -674,16 +679,26 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
         // ── 4. Furniture Silhouettes ──
         drawFurnitureSilhouette(ctx, room, scale, ox, oy, cx, cy, mode, rot);
 
-        // ── 5. Floor Perimeter Border ──
+        // ── 5. Floor Perimeter Border & Selected Room Spotlight ──
         ctx.beginPath();
         ctx.moveTo(fl0x, fl0y);
         ctx.lineTo(fl1x, fl1y);
         ctx.lineTo(fl2x, fl2y);
         ctx.lineTo(fl3x, fl3y);
         ctx.closePath();
-        ctx.strokeStyle = "rgba(200, 161, 90, 0.35)";
-        ctx.lineWidth = 0.8;
+        const isSelected = room.id === selectedRoomIdRef.current;
+        if (isSelected) {
+          ctx.strokeStyle = "#C8A15A";
+          ctx.lineWidth = 2.4;
+          ctx.shadowColor = "rgba(200, 161, 90, 0.85)";
+          ctx.shadowBlur = 16;
+        } else {
+          ctx.strokeStyle = "rgba(200, 161, 90, 0.35)";
+          ctx.lineWidth = 0.8;
+          ctx.shadowBlur = 0;
+        }
         ctx.stroke();
+        ctx.shadowBlur = 0;
 
         // ── 6. Low Interior Partition Curb (Dollhouse Cutaway) ──
         if (mode === "iso") {
@@ -794,11 +809,16 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
             pillHeight
           );
         }
-        ctx.fillStyle = "rgba(9, 17, 30, 0.88)";
+        ctx.fillStyle = isSelected ? "rgba(20, 28, 42, 0.95)" : "rgba(9, 17, 30, 0.88)";
         ctx.fill();
-        ctx.strokeStyle = "rgba(200, 161, 90, 0.4)";
-        ctx.lineWidth = 0.8;
+        ctx.strokeStyle = isSelected ? "#C8A15A" : "rgba(200, 161, 90, 0.4)";
+        ctx.lineWidth = isSelected ? 1.6 : 0.8;
+        if (isSelected) {
+          ctx.shadowColor = "rgba(200, 161, 90, 0.7)";
+          ctx.shadowBlur = 8;
+        }
         ctx.stroke();
+        ctx.shadowBlur = 0;
 
         // Room name in ivory
         ctx.fillStyle = "#F6F1E7";
@@ -1204,6 +1224,11 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
     }, [rotation, render]);
 
     useEffect(() => {
+      selectedRoomIdRef.current = selectedRoomId;
+      render(animStateRef.current?.drawnPlanks, animStateRef.current?.layouts);
+    }, [selectedRoomId, render]);
+
+    useEffect(() => {
       showFurnitureRef.current = showFurniture;
       render(animStateRef.current?.drawnPlanks, animStateRef.current?.layouts);
     }, [showFurniture, render]);
@@ -1218,13 +1243,58 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
       };
     }, []);
 
+    // ── Interactive Room Selection via Canvas Click ──
+    const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+      const canvas = canvasRef.current;
+      if (!canvas || !onSelectRoom) return;
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+      const { scale, ox, oy, cx, cy } = getFitParams(canvas);
+      const rot = rotationRef.current;
+      const mode = viewModeRef.current;
+      const p = (wx: number, wy: number, wz: number) =>
+        projectPoint(wx, wy, wz, scale, ox, oy, mode, rot, cx, cy);
+
+      // Check rooms from front to back
+      for (let i = rooms.length - 1; i >= 0; i--) {
+        const room = rooms[i];
+        const x0 = room.gridX;
+        const y0 = room.gridY;
+        const x1 = x0 + room.widthM;
+        const y1 = y0 + room.lengthM;
+
+        const [p0x, p0y] = p(x0, y0, 0);
+        const [p1x, p1y] = p(x1, y0, 0);
+        const [p2x, p2y] = p(x1, y1, 0);
+        const [p3x, p3y] = p(x0, y1, 0);
+
+        // Quad cross-product point in polygon test
+        const cross = (ax: number, ay: number, bx: number, by: number, qx: number, qy: number) =>
+          (bx - ax) * (qy - ay) - (by - ay) * (qx - ax);
+        const d0 = cross(p0x, p0y, p1x, p1y, clickX, clickY);
+        const d1 = cross(p1x, p1y, p2x, p2y, clickX, clickY);
+        const d2 = cross(p2x, p2y, p3x, p3y, clickX, clickY);
+        const d3 = cross(p3x, p3y, p0x, p0y, clickX, clickY);
+
+        const hasNeg = d0 < 0 || d1 < 0 || d2 < 0 || d3 < 0;
+        const hasPos = d0 > 0 || d1 > 0 || d2 > 0 || d3 > 0;
+
+        if (!(hasNeg && hasPos)) {
+          onSelectRoom(room.id);
+          return;
+        }
+      }
+    };
+
     const { spanX, spanY } = getHouseBounds();
 
     return (
       <div className="relative w-full h-full select-none">
         <canvas
           ref={canvasRef}
-          className={`block w-full h-full ${className}`}
+          onClick={handleCanvasClick}
+          className={`block w-full h-full cursor-pointer ${className}`}
           aria-label="Isometric architectural floor plan visualiser"
         />
 

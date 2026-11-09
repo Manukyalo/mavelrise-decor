@@ -6,10 +6,14 @@
 // Follows the architectural dollhouse reference (WhatsApp inspo) in luxury
 // deep navy & champagne gold.
 //
-// Steps:
-//   1. "setup"  → Client enters room measurements & chooses template preset
-//   2. "design" → 3D orthographic dollhouse cutaway with SPC floor styling,
-//                 animated click-lock plank laying, live quotes, and sharing.
+// Features:
+//   - Architectural Layout Presets: Single Room (Bedsitter), Studio, 1BR, 2BR,
+//     3BR, 4BR Villa, Office, and Custom.
+//   - Instant 3D dollhouse cutaway model adaptation to the chosen layout.
+//   - Room-by-room SPC floor styling: style the whole house at once, or click
+//     any room in 3D or in the sidebar to assign a distinct colour & direction.
+//   - Animated staggered click-lock plank laying.
+//   - Exact box & waste calculations for instant contractor-grade quoting.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useState, useRef, useCallback, useMemo } from "react";
@@ -25,9 +29,10 @@ import {
   Play,
   SkipForward,
   Sparkles,
+  Building,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Room, PlannerDesign, MeasurementUnit, QualityTier } from "@/lib/planner/types";
+import type { Room, PlannerDesign, MeasurementUnit, QualityTier, TemplateType } from "@/lib/planner/types";
 import { calculateQuote } from "@/lib/planner/geometry";
 import { getColorById, SPC_COLORS } from "@/lib/planner/colors";
 import { nanoid } from "@/lib/planner/nanoid";
@@ -57,10 +62,16 @@ export function PlannerShell() {
   // ── Step 1 (Setup Measurements) vs Step 2 (3D Design & Finishing) ─────────
   const [step, setStep] = useState<PlannerStep>("setup");
 
+  // Active template preset (defaults to 2-Bedroom)
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>("2bed");
+
   // Preload with 2-Bedroom architectural layout for the setup form
   const [rooms, setRooms] = useState<Room[]>(() =>
     TEMPLATES["2bed"].map((r) => ({ ...r, id: nanoid() }))
   );
+
+  // Active selected room for individual colour/direction styling
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
 
   const [globalColorId, setGlobalColorId] = useState(DEFAULT_COLOR_ID);
   const [perRoomColors, setPerRoomColors] = useState(false);
@@ -80,6 +91,15 @@ export function PlannerShell() {
   );
 
   const canvasRef = useRef<IsometricCanvasRef>(null);
+
+  // ── Template Switch Handler (Replaces entire house layout) ───────────────
+  const handleTemplateChange = useCallback((tmpl: TemplateType) => {
+    setSelectedTemplate(tmpl);
+    const templateRooms = TEMPLATES[tmpl];
+    const newRooms = templateRooms.map((r) => ({ ...r, id: nanoid() }));
+    setRooms(newRooms);
+    setSelectedRoomId(null);
+  }, []);
 
   // ── Build colorMap from rooms + global default ───────────────────────────
   const colorMap = useMemo(() => {
@@ -165,7 +185,7 @@ export function PlannerShell() {
   const handleShare = useCallback(async () => {
     if (!quote) return;
     const design: PlannerDesign = {
-      templateType: "custom",
+      templateType: selectedTemplate,
       rooms: effectiveRooms,
       globalColorId,
       perRoomColors,
@@ -188,7 +208,7 @@ export function PlannerShell() {
     } catch {
       setShareCode(nanoid().slice(0, 6).toUpperCase());
     }
-  }, [quote, effectiveRooms, globalColorId, perRoomColors]);
+  }, [quote, effectiveRooms, globalColorId, perRoomColors, selectedTemplate]);
 
   const handleWhatsApp = useCallback(() => {
     if (!quote) return;
@@ -196,13 +216,14 @@ export function PlannerShell() {
     const msg = encodeURIComponent(
       `Hello MarvelRise Decor,\n\nI have designed my space using your planner:\n` +
       `• ${rooms.length} rooms · ${quote.totalAreaSqm.toFixed(1)} m² total area\n` +
-      `• SPC Colour: ${color.name}\n` +
+      `• Layout: ${selectedTemplate.toUpperCase()}\n` +
+      `• Primary SPC Colour: ${color.name}\n` +
       `• Estimated boxes: ${quote.totalBoxes}\n\n` +
-      `Please confirm the quote and arrange a site visit.` +
+      `Please confirm the quote and arrange a site consultation.` +
       (shareCode ? `\n\nDesign code: ${shareCode}` : "")
     );
     window.open(`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_PHONE ?? "254712345678"}?text=${msg}`, "_blank");
-  }, [quote, rooms, globalColorId, shareCode]);
+  }, [quote, rooms, globalColorId, shareCode, selectedTemplate]);
 
   // ── Sidebar tabs config ──────────────────────────────────────────────────
   const sidebarTabs: Array<{ id: PlannerTab; icon: React.ReactNode; label: string }> = [
@@ -226,16 +247,16 @@ export function PlannerShell() {
               <span>Architectural Room Planner · Step 1 of 2</span>
             </div>
             <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-light text-brand-ivory uppercase leading-tight">
-              Enter Your <span className="italic text-brand-gold">Measurements</span>
+              Select Your <span className="italic text-brand-gold">House Layout</span>
             </h1>
             <p className="text-xs sm:text-sm font-sans text-brand-ivory/70 max-w-xl leading-relaxed">
-              Select an architectural floor layout template or specify custom room dimensions.
-              Next, preview your house as a 3D isometric cutaway with realistic SPC planks,
-              warm illumination, and instant box counts.
+              Choose from Single Room, Studio, 1BR, 2BR, 3BR, 4BR Villa or Custom.
+              Adjust room dimensions to your architectural plan, then preview your house
+              as an interactive 3D dollhouse cutaway.
             </p>
           </div>
 
-          {/* Room setup card */}
+          {/* Room setup card with layout selector */}
           <div className="p-5 sm:p-8 rounded-xs bg-brand-navy-card border border-brand-gold/20 shadow-2xl">
             <RoomSetupPanel
               rooms={rooms}
@@ -243,6 +264,8 @@ export function PlannerShell() {
               onConfirm={handleConfirmRooms}
               unit={unit}
               onUnitChange={setUnit}
+              selectedTemplate={selectedTemplate}
+              onTemplateSelect={handleTemplateChange}
             />
           </div>
 
@@ -261,15 +284,36 @@ export function PlannerShell() {
     // Note: pt-[72px] sm:pt-[80px] clears the fixed navbar completely so top controls are never covered!
     <div className="w-full bg-brand-navy flex flex-col overflow-hidden h-[100dvh] pt-[72px] sm:pt-[80px]">
       {/* Top bar — 100% visible, unobstructed, and clickable */}
-      <div className="border-b border-brand-gold/15 bg-brand-navy-deep px-4 py-2.5 flex items-center justify-between gap-4 shrink-0 z-30">
+      <div className="border-b border-brand-gold/15 bg-brand-navy-deep px-4 py-2.5 flex items-center justify-between gap-4 shrink-0 z-30 flex-wrap">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => setStep("setup")}
-            className="text-[11px] font-mono text-brand-gold hover:text-brand-gold-light uppercase tracking-wider transition-colors flex items-center gap-1.5 font-semibold bg-brand-navy px-2.5 py-1 rounded-xs border border-brand-gold/25"
+            className="text-[11px] font-mono text-brand-gold hover:text-brand-gold-light uppercase tracking-wider transition-colors flex items-center gap-1.5 font-semibold bg-brand-navy px-2.5 py-1 rounded-xs border border-brand-gold/25 cursor-pointer"
           >
-            <span>← Edit Measurements &amp; Rooms</span>
+            <span>← Edit Measurements &amp; Layout</span>
           </button>
+
+          {/* Quick House Template Switcher in 3D Mode */}
+          <div className="hidden md:flex items-center gap-1.5 bg-brand-navy px-2 py-0.5 rounded-xs border border-brand-gold/25">
+            <Building className="w-3 h-3 text-brand-gold/80" />
+            <select
+              value={selectedTemplate}
+              onChange={(e) => handleTemplateChange(e.target.value as TemplateType)}
+              className="bg-transparent text-brand-gold font-mono text-[10px] uppercase font-semibold focus:outline-none cursor-pointer"
+              title="Switch house layout template"
+            >
+              <option value="single" className="bg-brand-navy text-brand-ivory">Single Room (Bedsitter)</option>
+              <option value="studio" className="bg-brand-navy text-brand-ivory">Studio Apartment</option>
+              <option value="1bed" className="bg-brand-navy text-brand-ivory">1 Bedroom (1BR)</option>
+              <option value="2bed" className="bg-brand-navy text-brand-ivory">2 Bedrooms (2BR)</option>
+              <option value="3bed" className="bg-brand-navy text-brand-ivory">3 Bedrooms (3BR)</option>
+              <option value="4bed" className="bg-brand-navy text-brand-ivory">4 Bedrooms (4BR Villa)</option>
+              <option value="office" className="bg-brand-navy text-brand-ivory">Commercial Office</option>
+              <option value="custom" className="bg-brand-navy text-brand-ivory">Custom Layout</option>
+            </select>
+          </div>
+
           <div className="w-px h-4 bg-brand-gold/20 hidden sm:block" />
           <span className="text-[11px] font-mono text-brand-ivory/70 uppercase tracking-wider hidden sm:inline-block">
             {rooms.length} room{rooms.length !== 1 ? "s" : ""} ·{" "}
@@ -392,6 +436,11 @@ export function PlannerShell() {
             rotation={rotation}
             showFurniture={showFurniture}
             unit={unit}
+            selectedRoomId={selectedRoomId}
+            onSelectRoom={(id) => {
+              setSelectedRoomId(id);
+              setTab("colours");
+            }}
             onPlankProgress={(laid, total) => setPlankProgress({ laid, total })}
             onAnimationComplete={() => setIsAnimating(false)}
             onToggleViewMode={toggleViewMode}
@@ -459,6 +508,8 @@ export function PlannerShell() {
                 rooms={rooms}
                 globalColorId={globalColorId}
                 perRoomColors={perRoomColors}
+                selectedRoomId={selectedRoomId}
+                onSelectRoom={setSelectedRoomId}
                 onGlobalColorChange={(id) => { setGlobalColorId(id); }}
                 onRoomColorChange={(roomId, colorId) =>
                   setRooms((prev) =>
@@ -479,6 +530,8 @@ export function PlannerShell() {
                 onConfirm={() => setTab("colours")}
                 unit={unit}
                 onUnitChange={setUnit}
+                selectedTemplate={selectedTemplate}
+                onTemplateSelect={handleTemplateChange}
               />
             )}
 

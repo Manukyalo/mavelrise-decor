@@ -15,10 +15,12 @@ export type RoomType =
   | "hallway"
   | "other";
 export type TemplateType =
+  | "single"
   | "studio"
   | "1bed"
   | "2bed"
   | "3bed"
+  | "4bed"
   | "office"
   | "custom";
 export type MeasurementUnit = "m" | "ft";

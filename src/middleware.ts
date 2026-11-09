@@ -9,6 +9,10 @@ export default async function middleware(request: NextRequest) {
   // 1. Run next-intl middleware first to resolve locale routing
   const response = intlMiddleware(request);
 
+  // Expose the request pathname as a response header so server layouts can
+  // detect which route they're rendering (e.g. to suppress the footer on /planner).
+  response.headers.set("x-pathname", request.nextUrl.pathname);
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 

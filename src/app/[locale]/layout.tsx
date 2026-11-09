@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
+import { headers } from "next/headers";
 import { SmoothScrollProvider } from "@/components/motion/SmoothScrollProvider";
 import { BrandedLoader } from "@/components/motion/BrandedLoader";
 import { Header } from "@/components/layout/Header";
@@ -47,6 +48,10 @@ export default async function LocaleLayout({
   params: { locale: string };
 }) {
   const messages = await getMessages();
+  // Suppress footer and smooth-scroll on the planner route — it's a full-viewport app
+  const headersList = headers();
+  const pathname = headersList.get("x-pathname") ?? headersList.get("x-next-intl-pathname") ?? "";
+  const isPlanner = pathname.includes("/planner");
 
   return (
     <html lang={locale} className={`${cormorant.variable} ${plusJakarta.variable}`}>
@@ -70,8 +75,8 @@ export default async function LocaleLayout({
             {/* Sticky Showroom WhatsApp Concierge */}
             <StickyWhatsApp />
 
-            {/* Showroom Footer */}
-            <Footer />
+            {/* Showroom Footer — hidden on planner (full-viewport app page) */}
+            {!isPlanner && <Footer />}
           </SmoothScrollProvider>
         </NextIntlClientProvider>
       </body>

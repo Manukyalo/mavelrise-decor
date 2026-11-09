@@ -15,25 +15,12 @@ export function BrandedLoader({ onComplete }: BrandedLoaderProps) {
   const curtainRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Only show once per session; skip if already seen or reduced motion preferred
-    if (typeof window !== "undefined") {
-      if (
-        sessionStorage.getItem("mrd_loader_seen") ||
-        window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      ) {
-        setIsDone(true);
-        onComplete?.();
-        return;
-      }
-      sessionStorage.setItem("mrd_loader_seen", "1");
-    }
-
-    // Safety failsafe: never leave the screen blank if GSAP or asset loading stalls
-    const failsafe = setTimeout(() => {
-      document.body.style.overflow = "";
+    // Check reduced motion preference
+    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setIsDone(true);
       onComplete?.();
-    }, 1200);
+      return;
+    }
 
     // Lock body scroll during initial brand reveal
     document.body.style.overflow = "hidden";
@@ -41,7 +28,6 @@ export function BrandedLoader({ onComplete }: BrandedLoaderProps) {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
         onComplete: () => {
-          clearTimeout(failsafe);
           document.body.style.overflow = "";
           setIsDone(true);
           onComplete?.();
@@ -79,7 +65,6 @@ export function BrandedLoader({ onComplete }: BrandedLoaderProps) {
     }, containerRef);
 
     return () => {
-      clearTimeout(failsafe);
       document.body.style.overflow = "";
       ctx.revert();
     };

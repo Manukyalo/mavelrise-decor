@@ -54,8 +54,6 @@ export function PlannerShell() {
   const [perRoomColors, setPerRoomColors] = useState(false);
   const [tab, setTab] = useState<PlannerTab>("colours");
   const [viewMode, setViewMode] = useState<ViewMode>("iso");
-  const [rotation, setRotation] = useState<0 | 90 | 180 | 270>(0);
-  const [showFurniture, setShowFurniture] = useState<boolean>(true);
   const [zoom, setZoom] = useState(1);
   const [unit, setUnit] = useState<MeasurementUnit>("m");
   const [qualityTier] = useState<QualityTier>(detectQualityTier);
@@ -132,24 +130,6 @@ export function PlannerShell() {
     }, 300);
   }, [rooms]);
 
-  // ── 90° Snap Rotation ────────────────────────────────────────────────────
-  const handleRotate = useCallback(() => {
-    setRotation((prev) => {
-      const next = ((prev + 90) % 360) as 0 | 90 | 180 | 270;
-      canvasRef.current?.setRotation(next);
-      return next;
-    });
-  }, []);
-
-  // ── Toggle ISO / 2D View ─────────────────────────────────────────────────
-  const toggleViewMode = useCallback(() => {
-    setViewMode((prev) => {
-      const next = prev === "iso" ? "top" : "iso";
-      canvasRef.current?.setView(next);
-      return next;
-    });
-  }, []);
-
   // ── Share / save (Supabase) ──────────────────────────────────────────────
   const handleShare = useCallback(async () => {
     if (!quote) return;
@@ -203,7 +183,7 @@ export function PlannerShell() {
   ];
 
   return (
-    <div className="fixed inset-0 top-[72px] sm:top-[80px] bg-brand-navy flex flex-col z-40 overflow-hidden">
+    <div className="w-full bg-brand-navy flex flex-col overflow-hidden" style={{ height: "calc(100dvh - 72px)" }}>
       {/* Top bar */}
       <div className="border-b border-brand-gold/15 bg-brand-navy-deep px-4 py-2.5 flex items-center justify-between gap-4 shrink-0">
         <div className="flex items-center gap-3">
@@ -253,46 +233,6 @@ export function PlannerShell() {
             </button>
           </div>
 
-          {/* Rotate 90° button */}
-          {viewMode === "iso" && (
-            <button
-              type="button"
-              title="Rotate dollhouse 90°"
-              onClick={handleRotate}
-              className="px-2.5 py-1.5 rounded-xs border border-brand-gold/25 bg-brand-navy hover:bg-brand-navy-light text-brand-gold hover:text-brand-gold-light transition-colors flex items-center gap-1.5 text-[10px] font-mono"
-            >
-              <RotateCw className="w-3.5 h-3.5" />
-              <span>{rotation}°</span>
-            </button>
-          )}
-
-          {/* Furniture toggle */}
-          {viewMode === "iso" && (
-            <button
-              type="button"
-              title="Toggle architectural furniture silhouettes"
-              onClick={() => setShowFurniture((f) => !f)}
-              className={cn(
-                "px-2.5 py-1.5 text-[10px] font-mono uppercase tracking-wider rounded-xs border transition-colors flex items-center gap-1",
-                showFurniture
-                  ? "bg-brand-gold/20 border-brand-gold/50 text-brand-gold font-semibold"
-                  : "bg-brand-navy border-brand-gold/20 text-brand-ivory/50 hover:text-brand-ivory"
-              )}
-            >
-              <span>Decor {showFurniture ? "ON" : "OFF"}</span>
-            </button>
-          )}
-
-          {/* Metric / Imperial Unit Toggle */}
-          <button
-            type="button"
-            title="Toggle measurement units (metres / feet)"
-            onClick={() => setUnit((u) => (u === "m" ? "ft" : "m"))}
-            className="px-2.5 py-1.5 rounded-xs border border-brand-gold/25 bg-brand-navy text-[10px] font-mono text-brand-gold/80 hover:text-brand-gold uppercase font-semibold transition-colors"
-          >
-            {unit === "m" ? "M²" : "SQ FT"}
-          </button>
-
           {/* Zoom */}
           <button
             type="button"
@@ -330,14 +270,10 @@ export function PlannerShell() {
             qualityTier={qualityTier}
             viewMode={viewMode}
             zoom={zoom}
-            rotation={rotation}
-            showFurniture={showFurniture}
-            unit={unit}
             onPlankProgress={(laid, total) =>
               setPlankProgress({ laid, total })
             }
             onAnimationComplete={() => setIsAnimating(false)}
-            onToggleViewMode={toggleViewMode}
             className="w-full h-full"
           />
 

@@ -1,14 +1,18 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// IsometricHouseCanvas — Canvas 2D isometric renderer
+// IsometricHouseCanvas — Architectural Dollhouse Cutaway 2D Canvas Engine
 //
-// Architecture:
-//   - Pure Canvas 2D, no WebGL dependency → works on all devices
-//   - Isometric projection: (x,y,z) → (screen_x, screen_y) via standard iso math
-//   - Plank animation: RAF loop, row-by-row reveal per room, staggered joints
-//   - Quality tiers: "high" = all effects | "medium" = no shadows | "low" = flat 2D
-//   - 2D fallback: orthographic top-down view on the same canvas
+// Inspired by luxury architectural dollhouses & MarvelRise interior references:
+//   - 30° Orthographic isometric cutaway of the full house layout
+//   - Low-cut interior walls with champagne gold architectural coping
+//   - Full-height back & side framing walls with dark charcoal cladding
+//   - Warm incandescent floor illumination pools (2700K ambient lighting)
+//   - Low-poly architectural furniture silhouettes (beds, sofas, tables, counters)
+//   - Natural wood/SPC plank texture with micro-bevels & click-lock animation
+//   - Floating hairline leader labels with room dimensions
+//   - Interactive 90° snap rotation & mini top-down schematic toggle
+//   - Pure Canvas 2D: smooth 60fps on mobile/Android with zero heavy WebGL traps
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, {
@@ -18,17 +22,19 @@ import React, {
   useImperativeHandle,
   forwardRef,
 } from "react";
-import type { Room, SpcColor, QualityTier, PlankLayout } from "@/lib/planner/types";
+import type { Room, SpcColor, QualityTier, PlankLayout, MeasurementUnit } from "@/lib/planner/types";
 
-// ── Isometric projection constants ───────────────────────────────────────────
+// ── Projection Constants ──────────────────────────────────────────────────────
 const ISO_ANGLE = 30; // degrees from horizontal
 const ISO_X_RATIO = Math.cos((ISO_ANGLE * Math.PI) / 180);
 const ISO_Y_RATIO = Math.sin((ISO_ANGLE * Math.PI) / 180);
-const WALL_HEIGHT_U = 0.22; // Low sleek architectural curb (avoids blocking rooms)
-const PLINTH_DEPTH_U = 0.35; // Architectural foundation podium depth
 
-// ── Room label font ───────────────────────────────────────────────────────────
-const LABEL_FONT = "'Cormorant Garamond', serif";
+const WALL_HEIGHT_LOW = 0.22;  // Low front and interior partition walls
+const WALL_HEIGHT_TALL = 0.78; // Tall back/side framing exterior walls
+const PLINTH_DEPTH = 0.42;     // Foundation podium depth
+
+// ── Typography ────────────────────────────────────────────────────────────────
+const LABEL_FONT = "'Cormorant Garamond', Georgia, serif";
 const MONO_FONT = "'JetBrains Mono', monospace";
 
 export interface IsometricCanvasRef {
@@ -36,48 +42,31 @@ export interface IsometricCanvasRef {
   skipAnimation(): void;
   replayAnimation(): void;
   setView(mode: "iso" | "top"): void;
+  setRotation(angle: 0 | 90 | 180 | 270): void;
   exportPng(): string;
 }
 
 interface Props {
   rooms: Room[];
-  colorMap: Record<string, SpcColor>; // roomId → SpcColor
+  colorMap: Record<string, SpcColor>;
   qualityTier: QualityTier;
   viewMode?: "iso" | "top";
   zoom?: number;
+  rotation?: 0 | 90 | 180 | 270;
+  showFurniture?: boolean;
+  unit?: MeasurementUnit;
   onPlankProgress?: (laid: number, total: number) => void;
   onAnimationComplete?: () => void;
+  onToggleViewMode?: () => void;
   className?: string;
 }
 
-function isoProject(
-  worldX: number,
-  worldY: number,
-  worldZ: number,
-  scale: number,
-  offsetX: number,
-  offsetY: number
-): [number, number] {
-  const sx = (worldX - worldY) * ISO_X_RATIO * scale + offsetX;
-  const sy = (worldX + worldY) * ISO_Y_RATIO * scale - worldZ * scale + offsetY;
-  return [sx, sy];
-}
-
-function topProject(
-  worldX: number,
-  worldY: number,
-  _worldZ: number,
-  scale: number,
-  offsetX: number,
-  offsetY: number
-): [number, number] {
-  return [worldX * scale + offsetX, worldY * scale + offsetY];
-}
-
+// ── Color Utilities ───────────────────────────────────────────────────────────
 function hexToRgb(hex: string): [number, number, number] {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
+  const clean = hex.replace("#", "");
+  const r = parseInt(clean.slice(0, 2), 16) || 0;
+  const g = parseInt(clean.slice(2, 4), 16) || 0;
+  const b = parseInt(clean.slice(4, 6), 16) || 0;
   return [r, g, b];
 }
 
@@ -94,6 +83,44 @@ function lighten(hex: string, factor: number): string {
   return `rgb(${lr},${lg},${lb})`;
 }
 
+// ── 3D Projection with Centered 90° Rotation ──────────────────────────────────
+function projectPoint(
+  worldX: number,
+  worldY: number,
+  worldZ: number,
+  scale: number,
+  ox: number,
+  oy: number,
+  mode: "iso" | "top",
+  rotation: 0 | 90 | 180 | 270,
+  cx: number,
+  cy: number
+): [number, number] {
+  // Rotate around house center (cx, cy)
+  let rx = worldX;
+  let ry = worldY;
+
+  if (rotation === 90) {
+    rx = cx + (worldY - cy);
+    ry = cy - (worldX - cx);
+  } else if (rotation === 180) {
+    rx = cx - (worldX - cx);
+    ry = cy - (worldY - cy);
+  } else if (rotation === 270) {
+    rx = cx - (worldY - cy);
+    ry = cy + (worldX - cx);
+  }
+
+  if (mode === "top") {
+    return [rx * scale + ox, ry * scale + oy];
+  }
+
+  // Standard 30° orthographic isometric
+  const sx = (rx - ry) * ISO_X_RATIO * scale + ox;
+  const sy = (rx + ry) * ISO_Y_RATIO * scale - worldZ * scale + oy;
+  return [sx, sy];
+}
+
 export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
   function IsometricHouseCanvas(
     {
@@ -102,8 +129,12 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
       qualityTier,
       viewMode = "iso",
       zoom = 1,
+      rotation = 0,
+      showFurniture = true,
+      unit = "m",
       onPlankProgress,
       onAnimationComplete,
+      onToggleViewMode,
       className = "",
     },
     ref
@@ -111,6 +142,9 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const viewModeRef = useRef<"iso" | "top">(viewMode);
     const zoomRef = useRef(zoom);
+    const rotationRef = useRef<0 | 90 | 180 | 270>(rotation);
+    const showFurnitureRef = useRef(showFurniture);
+
     const animRef = useRef<number | null>(null);
     const animStateRef = useRef<{
       active: boolean;
@@ -123,48 +157,54 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
       drawnPlanks: Array<{ roomId: string; plankIndex: number }>;
     } | null>(null);
 
-    // ── Auto-fit scale & centering offsets (pure CSS-pixel space) ───────────
+    // ── Calculate House Center & Bounding Box ────────────────────────────────
+    const getHouseBounds = useCallback(() => {
+      if (rooms.length === 0) {
+        return { minX: 0, minY: 0, maxX: 10, maxY: 10, cx: 5, cy: 5, spanX: 10, spanY: 10 };
+      }
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const r of rooms) {
+        minX = Math.min(minX, r.gridX);
+        minY = Math.min(minY, r.gridY);
+        maxX = Math.max(maxX, r.gridX + r.widthM);
+        maxY = Math.max(maxY, r.gridY + r.lengthM);
+      }
+      const cx = (minX + maxX) / 2;
+      const cy = (minY + maxY) / 2;
+      return { minX, minY, maxX, maxY, cx, cy, spanX: maxX - minX, spanY: maxY - minY };
+    }, [rooms]);
+
+    // ── Fit Params (Auto-center & Scale) ─────────────────────────────────────
     const getFitParams = useCallback(
-      (canvas: HTMLCanvasElement): { scale: number; ox: number; oy: number } => {
-        // Use client dimensions so devicePixelRatio doesn't displace the view
+      (canvas: HTMLCanvasElement): { scale: number; ox: number; oy: number; cx: number; cy: number } => {
         const cssWidth = canvas.clientWidth || 800;
         const cssHeight = canvas.clientHeight || 600;
+        const { minX, minY, maxX, maxY, cx, cy, spanX, spanY } = getHouseBounds();
 
-        if (rooms.length === 0) {
-          return { scale: 32 * zoomRef.current, ox: cssWidth / 2, oy: cssHeight / 2 };
-        }
-
-        // Bounding box of all rooms in world space (metres)
-        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-        for (const r of rooms) {
-          minX = Math.min(minX, r.gridX);
-          minY = Math.min(minY, r.gridY);
-          maxX = Math.max(maxX, r.gridX + r.widthM);
-          maxY = Math.max(maxY, r.gridY + r.lengthM);
-        }
+        const currentRot = rotationRef.current;
+        const isRotated90or270 = currentRot === 90 || currentRot === 270;
+        const effectiveSpanX = isRotated90or270 ? spanY : spanX;
+        const effectiveSpanY = isRotated90or270 ? spanX : spanY;
 
         if (viewModeRef.current === "top") {
-          const houseW = Math.max(maxX - minX, 1);
-          const houseH = Math.max(maxY - minY, 1);
           const baseScale = Math.min(
-            (cssWidth * 0.8) / houseW,
-            (cssHeight * 0.8) / houseH
+            (cssWidth * 0.74) / Math.max(effectiveSpanX, 1),
+            (cssHeight * 0.74) / Math.max(effectiveSpanY, 1)
           );
           const effectiveScale = baseScale * zoomRef.current;
-          const ox = cssWidth / 2 - ((minX + maxX) / 2) * effectiveScale;
-          const oy = cssHeight / 2 - ((minY + maxY) / 2) * effectiveScale;
-          return { scale: effectiveScale, ox, oy };
+          const ox = cssWidth / 2 - cx * effectiveScale;
+          const oy = cssHeight / 2 - cy * effectiveScale;
+          return { scale: effectiveScale, ox, oy, cx, cy };
         }
 
-        // Iso: project all corners of bounding box at scale = 1
-        const h = WALL_HEIGHT_U;
+        // Iso: project corners around center
         const corners: Array<[number, number]> = [
-          isoProject(minX, minY, 0, 1, 0, 0),
-          isoProject(maxX, minY, 0, 1, 0, 0),
-          isoProject(maxX, maxY, 0, 1, 0, 0),
-          isoProject(minX, maxY, 0, 1, 0, 0),
-          isoProject(minX, minY, h, 1, 0, 0),
-          isoProject(maxX, maxY, h, 1, 0, 0),
+          projectPoint(minX, minY, 0, 1, 0, 0, "iso", currentRot, cx, cy),
+          projectPoint(maxX, minY, 0, 1, 0, 0, "iso", currentRot, cx, cy),
+          projectPoint(maxX, maxY, 0, 1, 0, 0, "iso", currentRot, cx, cy),
+          projectPoint(minX, maxY, 0, 1, 0, 0, "iso", currentRot, cx, cy),
+          projectPoint(minX, minY, WALL_HEIGHT_TALL, 1, 0, 0, "iso", currentRot, cx, cy),
+          projectPoint(maxX, maxY, WALL_HEIGHT_TALL, 1, 0, 0, "iso", currentRot, cx, cy),
         ];
 
         const minSX = Math.min(...corners.map(([x]) => x));
@@ -175,28 +215,27 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
         const houseSpanX = Math.max(maxSX - minSX, 1);
         const houseSpanY = Math.max(maxSY - minSY, 1);
 
-        // Auto-scale: fits the entire house inside 78% of the viewport with breathing room
+        // Auto-scale to fill 76% of viewport with ample breathing room
         const autoScale = Math.min(
-          (cssWidth * 0.78) / houseSpanX,
-          (cssHeight * 0.78) / houseSpanY
+          (cssWidth * 0.76) / houseSpanX,
+          (cssHeight * 0.76) / houseSpanY
         );
         const effectiveScale = autoScale * zoomRef.current;
 
-        // Projected center of the house at effectiveScale
         const houseCenterSX = ((minSX + maxSX) / 2) * effectiveScale;
         const houseCenterSY = ((minSY + maxSY) / 2) * effectiveScale;
 
-        // Offset places house center exactly at (cssWidth / 2, cssHeight / 2)
+        // Perfect viewport centering
         const ox = cssWidth / 2 - houseCenterSX;
         const oy = cssHeight / 2 - houseCenterSY;
 
-        return { scale: effectiveScale, ox, oy };
+        return { scale: effectiveScale, ox, oy, cx, cy };
       },
-      [rooms]
+      [getHouseBounds]
     );
 
-    // ── Draw floor texture lines (static non-animated) ──────────────────────
-    const drawFloorTexture = useCallback(
+    // ── Draw Planks & Wood Grain ─────────────────────────────────────────────
+    const drawPlankRow = useCallback(
       (
         ctx: CanvasRenderingContext2D,
         room: Room,
@@ -204,7 +243,10 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
         scale: number,
         ox: number,
         oy: number,
-        project: typeof isoProject
+        cx: number,
+        cy: number,
+        mode: "iso" | "top",
+        rot: 0 | 90 | 180 | 270
       ) => {
         const PLANK_W_M = 0.18; // 180mm
         const PLANK_L_M = 1.22; // 1220mm
@@ -229,7 +271,6 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
               const startSpan = spanCursor;
               const endSpan = Math.min(spanDir, spanCursor + spanStep);
 
-              // Map to world coords
               const ax = isLengthwise ? room.gridX + startRun : room.gridX + startSpan;
               const ay = isLengthwise ? room.gridY + startSpan : room.gridY + startRun;
               const bx = isLengthwise ? room.gridX + endRun : room.gridX + endSpan;
@@ -239,10 +280,10 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
               const dx = isLengthwise ? room.gridX + startRun : room.gridX + startSpan;
               const dy = isLengthwise ? room.gridY + endSpan : room.gridY + endRun;
 
-              const [sax, say] = project(ax, ay, 0.01, scale, ox, oy);
-              const [sbx, sby] = project(bx, by, 0.01, scale, ox, oy);
-              const [scx, scy] = project(cx2, cy2, 0.01, scale, ox, oy);
-              const [sdx, sdy] = project(dx, dy, 0.01, scale, ox, oy);
+              const [sax, say] = projectPoint(ax, ay, 0.01, scale, ox, oy, mode, rot, cx, cy);
+              const [sbx, sby] = projectPoint(bx, by, 0.01, scale, ox, oy, mode, rot, cx, cy);
+              const [scx, scy] = projectPoint(cx2, cy2, 0.01, scale, ox, oy, mode, rot, cx, cy);
+              const [sdx, sdy] = projectPoint(dx, dy, 0.01, scale, ox, oy, mode, rot, cx, cy);
 
               ctx.beginPath();
               ctx.moveTo(sax, say);
@@ -251,18 +292,19 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
               ctx.lineTo(sdx, sdy);
               ctx.closePath();
 
-              const toneVariation = (rowIdx + Math.floor(runCursor)) % 3;
-              const toneColor =
-                toneVariation === 0
-                  ? color.hex
-                  : toneVariation === 1
-                    ? darken(color.hex, 0.88)
-                    : lighten(color.hex, 0.08);
+              // Subtle natural timber tone variation
+              const toneVariation = (rowIdx * 3 + Math.floor(runCursor * 2)) % 5;
+              let toneColor = color.hex;
+              if (toneVariation === 1) toneColor = darken(color.hex, 0.92);
+              else if (toneVariation === 2) toneColor = lighten(color.hex, 0.06);
+              else if (toneVariation === 3) toneColor = darken(color.hex, 0.85);
 
               ctx.fillStyle = toneColor;
               ctx.fill();
-              ctx.strokeStyle = darken(color.hex, 0.7);
-              ctx.lineWidth = 0.4;
+
+              // Micro-bevel plank seam line
+              ctx.strokeStyle = darken(color.hex, 0.65);
+              ctx.lineWidth = 0.45;
               ctx.stroke();
             }
             runCursor += PLANK_L_M;
@@ -275,8 +317,8 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
       []
     );
 
-    // ── Draw a subset of planks (animation path) ─────────────────────────────
-    const drawPlanksOnFloor = useCallback(
+    // ── Draw Animated Planks ─────────────────────────────────────────────────
+    const drawAnimatedPlanks = useCallback(
       (
         ctx: CanvasRenderingContext2D,
         room: Room,
@@ -285,7 +327,10 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
         scale: number,
         ox: number,
         oy: number,
-        project: typeof isoProject
+        cx: number,
+        cy: number,
+        mode: "iso" | "top",
+        rot: 0 | 90 | 180 | 270
       ) => {
         const isLengthwise = room.plankDirection !== "crosswise";
         const mmToM = 1 / 1000;
@@ -305,10 +350,10 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
           const dx = room.gridX + (isLengthwise ? startRunM : endSpanM);
           const dy = room.gridY + (isLengthwise ? endSpanM : startRunM);
 
-          const [sax, say] = project(ax, ay, 0.01, scale, ox, oy);
-          const [sbx, sby] = project(bx, by, 0.01, scale, ox, oy);
-          const [scx, scy] = project(cx2, cy2, 0.01, scale, ox, oy);
-          const [sdx, sdy] = project(dx, dy, 0.01, scale, ox, oy);
+          const [sax, say] = projectPoint(ax, ay, 0.01, scale, ox, oy, mode, rot, cx, cy);
+          const [sbx, sby] = projectPoint(bx, by, 0.01, scale, ox, oy, mode, rot, cx, cy);
+          const [scx, scy] = projectPoint(cx2, cy2, 0.01, scale, ox, oy, mode, rot, cx, cy);
+          const [sdx, sdy] = projectPoint(dx, dy, 0.01, scale, ox, oy, mode, rot, cx, cy);
 
           ctx.beginPath();
           ctx.moveTo(sax, say);
@@ -323,19 +368,213 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
               ? color.hex
               : toneVariation === 1
                 ? darken(color.hex, 0.88)
-                : lighten(color.hex, 0.08);
+                : lighten(color.hex, 0.07);
 
           ctx.fillStyle = toneColor;
           ctx.fill();
           ctx.strokeStyle = darken(color.hex, 0.7);
-          ctx.lineWidth = 0.4;
+          ctx.lineWidth = 0.45;
           ctx.stroke();
         }
       },
       []
     );
 
-    // ── Draw a single room (walls + floor) ──────────────────────────────────
+    // ── Architectural Low-Poly Furniture Silhouettes ─────────────────────────
+    const drawFurnitureSilhouette = useCallback(
+      (
+        ctx: CanvasRenderingContext2D,
+        room: Room,
+        scale: number,
+        ox: number,
+        oy: number,
+        cx: number,
+        cy: number,
+        mode: "iso" | "top",
+        rot: 0 | 90 | 180 | 270
+      ) => {
+        if (!showFurnitureRef.current) return;
+
+        const p = (wx: number, wy: number, wz: number) =>
+          projectPoint(wx, wy, wz, scale, ox, oy, mode, rot, cx, cy);
+
+        const rx = room.gridX;
+        const ry = room.gridY;
+        const rw = room.widthM;
+        const rl = room.lengthM;
+
+        ctx.save();
+
+        if (room.type === "master" || room.type === "bedroom") {
+          // ── Modern Master / Bedroom Bed Silhouette ──
+          const bedW = Math.min(rw * 0.5, 1.8);
+          const bedL = Math.min(rl * 0.55, 2.1);
+          const bedX = rx + (rw - bedW) / 2;
+          const bedY = ry + 0.3;
+
+          // Bed base
+          const [b0x, b0y] = p(bedX, bedY, 0.03);
+          const [b1x, b1y] = p(bedX + bedW, bedY, 0.03);
+          const [b2x, b2y] = p(bedX + bedW, bedY + bedL, 0.03);
+          const [b3x, b3y] = p(bedX, bedY + bedL, 0.03);
+
+          ctx.beginPath();
+          ctx.moveTo(b0x, b0y);
+          ctx.lineTo(b1x, b1y);
+          ctx.lineTo(b2x, b2y);
+          ctx.lineTo(b3x, b3y);
+          ctx.closePath();
+          ctx.fillStyle = "rgba(246, 241, 231, 0.16)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(200, 161, 90, 0.4)";
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+
+          // Pillows
+          const pillW = bedW * 0.38;
+          const pillL = bedL * 0.22;
+          const [p0x, p0y] = p(bedX + 0.1, bedY + 0.1, 0.06);
+          const [p1x, p1y] = p(bedX + 0.1 + pillW, bedY + 0.1, 0.06);
+          const [p2x, p2y] = p(bedX + 0.1 + pillW, bedY + 0.1 + pillL, 0.06);
+          const [p3x, p3y] = p(bedX + 0.1, bedY + 0.1 + pillL, 0.06);
+          ctx.beginPath();
+          ctx.moveTo(p0x, p0y);
+          ctx.lineTo(p1x, p1y);
+          ctx.lineTo(p2x, p2y);
+          ctx.lineTo(p3x, p3y);
+          ctx.closePath();
+          ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+          ctx.fill();
+
+          const [p4x, p4y] = p(bedX + bedW - 0.1 - pillW, bedY + 0.1, 0.06);
+          const [p5x, p5y] = p(bedX + bedW - 0.1, bedY + 0.1, 0.06);
+          const [p6x, p6y] = p(bedX + bedW - 0.1, bedY + 0.1 + pillL, 0.06);
+          const [p7x, p7y] = p(bedX + bedW - 0.1 - pillW, bedY + 0.1 + pillL, 0.06);
+          ctx.beginPath();
+          ctx.moveTo(p4x, p4y);
+          ctx.lineTo(p5x, p5y);
+          ctx.lineTo(p6x, p6y);
+          ctx.lineTo(p7x, p7y);
+          ctx.closePath();
+          ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+          ctx.fill();
+
+          // Small warm bedside lamp points
+          const [l1x, l1y] = p(bedX - 0.2, bedY + 0.2, 0.04);
+          ctx.beginPath();
+          ctx.arc(l1x, l1y, Math.max(3, scale * 0.08), 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(255, 215, 140, 0.85)";
+          ctx.fill();
+
+          const [l2x, l2y] = p(bedX + bedW + 0.2, bedY + 0.2, 0.04);
+          ctx.beginPath();
+          ctx.arc(l2x, l2y, Math.max(3, scale * 0.08), 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(255, 215, 140, 0.85)";
+          ctx.fill();
+        } else if (room.type === "living") {
+          // ── Architectural L-Sofa & Coffee Table ──
+          const sofaW = Math.min(rw * 0.55, 2.6);
+          const sofaL = Math.min(rl * 0.55, 2.4);
+          const sx = rx + 0.5;
+          const sy = ry + 0.5;
+
+          // Main sofa section
+          const [s0x, s0y] = p(sx, sy, 0.04);
+          const [s1x, s1y] = p(sx + sofaW, sy, 0.04);
+          const [s2x, s2y] = p(sx + sofaW, sy + 0.8, 0.04);
+          const [s3x, s3y] = p(sx, sy + 0.8, 0.04);
+          ctx.beginPath();
+          ctx.moveTo(s0x, s0y);
+          ctx.lineTo(s1x, s1y);
+          ctx.lineTo(s2x, s2y);
+          ctx.lineTo(s3x, s3y);
+          ctx.closePath();
+          ctx.fillStyle = "rgba(18, 28, 45, 0.7)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(200, 161, 90, 0.35)";
+          ctx.stroke();
+
+          // Chaise return
+          const [c0x, c0y] = p(sx, sy + 0.8, 0.04);
+          const [c1x, c1y] = p(sx + 0.85, sy + 0.8, 0.04);
+          const [c2x, c2y] = p(sx + 0.85, sy + sofaL, 0.04);
+          const [c3x, c3y] = p(sx, sy + sofaL, 0.04);
+          ctx.beginPath();
+          ctx.moveTo(c0x, c0y);
+          ctx.lineTo(c1x, c1y);
+          ctx.lineTo(c2x, c2y);
+          ctx.lineTo(c3x, c3y);
+          ctx.closePath();
+          ctx.fillStyle = "rgba(18, 28, 45, 0.7)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(200, 161, 90, 0.35)";
+          ctx.stroke();
+
+          // Coffee table
+          const [t0x, t0y] = p(sx + 1.1, sy + 1.1, 0.03);
+          const [t1x, t1y] = p(sx + 2.0, sy + 1.1, 0.03);
+          const [t2x, t2y] = p(sx + 2.0, sy + 1.7, 0.03);
+          const [t3x, t3y] = p(sx + 1.1, sy + 1.7, 0.03);
+          ctx.beginPath();
+          ctx.moveTo(t0x, t0y);
+          ctx.lineTo(t1x, t1y);
+          ctx.lineTo(t2x, t2y);
+          ctx.lineTo(t3x, t3y);
+          ctx.closePath();
+          ctx.fillStyle = "rgba(200, 161, 90, 0.22)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(200, 161, 90, 0.5)";
+          ctx.stroke();
+        } else if (room.type === "dining") {
+          // ── Dining Table & 4 Chairs ──
+          const dtW = Math.min(rw * 0.5, 1.8);
+          const dtL = Math.min(rl * 0.45, 1.0);
+          const dx = rx + (rw - dtW) / 2;
+          const dy = ry + (rl - dtL) / 2;
+
+          const [d0x, d0y] = p(dx, dy, 0.04);
+          const [d1x, d1y] = p(dx + dtW, dy, 0.04);
+          const [d2x, d2y] = p(dx + dtW, dy + dtL, 0.04);
+          const [d3x, d3y] = p(dx, dy + dtL, 0.04);
+          ctx.beginPath();
+          ctx.moveTo(d0x, d0y);
+          ctx.lineTo(d1x, d1y);
+          ctx.lineTo(d2x, d2y);
+          ctx.lineTo(d3x, d3y);
+          ctx.closePath();
+          ctx.fillStyle = "rgba(246, 241, 231, 0.18)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(200, 161, 90, 0.45)";
+          ctx.stroke();
+        } else if (room.type === "kitchen") {
+          // ── Kitchen Island Counter ──
+          const kw = Math.min(rw * 0.6, 2.2);
+          const kl = 0.65;
+          const kx = rx + (rw - kw) / 2;
+          const ky = ry + rl * 0.4;
+
+          const [k0x, k0y] = p(kx, ky, 0.04);
+          const [k1x, k1y] = p(kx + kw, ky, 0.04);
+          const [k2x, k2y] = p(kx + kw, ky + kl, 0.04);
+          const [k3x, k3y] = p(kx, ky + kl, 0.04);
+          ctx.beginPath();
+          ctx.moveTo(k0x, k0y);
+          ctx.lineTo(k1x, k1y);
+          ctx.lineTo(k2x, k2y);
+          ctx.lineTo(k3x, k3y);
+          ctx.closePath();
+          ctx.fillStyle = "rgba(15, 23, 38, 0.75)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(200, 161, 90, 0.35)";
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      },
+      []
+    );
+
+    // ── Draw Single Room ─────────────────────────────────────────────────────
     const drawRoom = useCallback(
       (
         ctx: CanvasRenderingContext2D,
@@ -344,7 +583,10 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
         scale: number,
         ox: number,
         oy: number,
-        project: typeof isoProject,
+        cx: number,
+        cy: number,
+        mode: "iso" | "top",
+        rot: 0 | 90 | 180 | 270,
         drawnPlanks?: Array<{ roomId: string; plankIndex: number }>,
         allLayouts?: PlankLayout[]
       ) => {
@@ -352,157 +594,346 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
         const y0 = room.gridY;
         const x1 = x0 + room.widthM;
         const y1 = y0 + room.lengthM;
-        const h = WALL_HEIGHT_U;
 
-        const p = (x: number, y: number, z: number) => project(x, y, z, scale, ox, oy);
+        const p = (wx: number, wy: number, wz: number) =>
+          projectPoint(wx, wy, wz, scale, ox, oy, mode, rot, cx, cy);
 
-        // ── Floor face ──
-        const [flx0, fly0] = p(x0, y0, 0);
-        const [flx1, fly1] = p(x1, y0, 0);
-        const [flx2, fly2] = p(x1, y1, 0);
-        const [flx3, fly3] = p(x0, y1, 0);
+        // ── 1. Floor Polygon ──
+        const [fl0x, fl0y] = p(x0, y0, 0);
+        const [fl1x, fl1y] = p(x1, y0, 0);
+        const [fl2x, fl2y] = p(x1, y1, 0);
+        const [fl3x, fl3y] = p(x0, y1, 0);
 
         ctx.beginPath();
-        ctx.moveTo(flx0, fly0);
-        ctx.lineTo(flx1, fly1);
-        ctx.lineTo(flx2, fly2);
-        ctx.lineTo(flx3, fly3);
+        ctx.moveTo(fl0x, fl0y);
+        ctx.lineTo(fl1x, fl1y);
+        ctx.lineTo(fl2x, fl2y);
+        ctx.lineTo(fl3x, fl3y);
         ctx.closePath();
 
-        const floorColor = room.hasFlooring ? color.hex : "#1A1F2B";
-        ctx.fillStyle = floorColor;
+        const baseFloorColor = room.hasFlooring ? color.hex : "#131A26";
+        ctx.fillStyle = baseFloorColor;
         ctx.fill();
 
-        // If we have plank layout, draw visible planks
+        // ── 2. Planks / Floor Surface ──
         if (room.hasFlooring && drawnPlanks && allLayouts) {
           const layout = allLayouts.find((l) => l.roomId === room.id);
           if (layout) {
-            const relevantPlanks = drawnPlanks
+            const relevant = drawnPlanks
               .filter((dp) => dp.roomId === room.id)
               .map((dp) => layout.plankPositions[dp.plankIndex])
               .filter(Boolean);
 
-            drawPlanksOnFloor(
+            drawAnimatedPlanks(
               ctx,
               room,
-              relevantPlanks,
+              relevant,
               color,
               scale,
               ox,
               oy,
-              project
+              cx,
+              cy,
+              mode,
+              rot
             );
           }
         } else if (room.hasFlooring) {
-          // Static render: draw all planks
-          drawFloorTexture(ctx, room, color, scale, ox, oy, project);
+          drawPlankRow(ctx, room, color, scale, ox, oy, cx, cy, mode, rot);
         }
 
-        // ── Floor border ──
+        // ── 3. Warm Ambient Lighting Pools (Reference Inspo) ──
+        if (mode === "iso" && room.hasFlooring && qualityTier !== "low") {
+          const [lightX, lightY] = p(
+            x0 + room.widthM / 2,
+            y0 + room.lengthM / 2,
+            0.02
+          );
+          const lightRadius = Math.max(room.widthM, room.lengthM) * scale * 0.48;
+
+          ctx.save();
+          const radialGlow = ctx.createRadialGradient(
+            lightX,
+            lightY,
+            4,
+            lightX,
+            lightY,
+            lightRadius
+          );
+          radialGlow.addColorStop(0, "rgba(255, 215, 140, 0.15)");
+          radialGlow.addColorStop(0.45, "rgba(200, 161, 90, 0.06)");
+          radialGlow.addColorStop(1, "rgba(200, 161, 90, 0)");
+
+          ctx.beginPath();
+          ctx.arc(lightX, lightY, lightRadius, 0, Math.PI * 2);
+          ctx.fillStyle = radialGlow;
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // ── 4. Furniture Silhouettes ──
+        drawFurnitureSilhouette(ctx, room, scale, ox, oy, cx, cy, mode, rot);
+
+        // ── 5. Floor Perimeter Border ──
         ctx.beginPath();
-        ctx.moveTo(flx0, fly0);
-        ctx.lineTo(flx1, fly1);
-        ctx.lineTo(flx2, fly2);
-        ctx.lineTo(flx3, fly3);
+        ctx.moveTo(fl0x, fl0y);
+        ctx.lineTo(fl1x, fl1y);
+        ctx.lineTo(fl2x, fl2y);
+        ctx.lineTo(fl3x, fl3y);
         ctx.closePath();
-        ctx.strokeStyle = "rgba(200,161,90,0.3)";
+        ctx.strokeStyle = "rgba(200, 161, 90, 0.35)";
         ctx.lineWidth = 0.8;
         ctx.stroke();
 
-        if (project === isoProject) {
-          // ── Sleek low architectural curb (gives 3D depth without obscuring floors) ──
-          // Left curb face
-          const [wlx0, wly0] = p(x0, y1, 0);
-          const [wlx1, wly1] = p(x0, y1, h);
-          const [wlx2, wly2] = p(x0, y0, h);
-          const [wlx3, wly3] = p(x0, y0, 0);
+        // ── 6. Low Interior Partition Curb (Dollhouse Cutaway) ──
+        if (mode === "iso") {
+          const h = WALL_HEIGHT_LOW;
+
+          // Left interior curb
+          const [cl0x, cl0y] = p(x0, y1, 0);
+          const [cl1x, cl1y] = p(x0, y1, h);
+          const [cl2x, cl2y] = p(x0, y0, h);
+          const [cl3x, cl3y] = p(x0, y0, 0);
 
           ctx.beginPath();
-          ctx.moveTo(wlx0, wly0);
-          ctx.lineTo(wlx1, wly1);
-          ctx.lineTo(wlx2, wly2);
-          ctx.lineTo(wlx3, wly3);
+          ctx.moveTo(cl0x, cl0y);
+          ctx.lineTo(cl1x, cl1y);
+          ctx.lineTo(cl2x, cl2y);
+          ctx.lineTo(cl3x, cl3y);
           ctx.closePath();
-          ctx.fillStyle = "rgba(11, 27, 51, 0.45)";
+          ctx.fillStyle = "rgba(10, 18, 30, 0.65)";
           ctx.fill();
           ctx.strokeStyle = "rgba(200, 161, 90, 0.35)";
-          ctx.lineWidth = 0.8;
+          ctx.lineWidth = 0.7;
           ctx.stroke();
 
-          // Right curb face
-          const [wrx0, wry0] = p(x1, y0, 0);
-          const [wrx1, wry1] = p(x1, y0, h);
-          const [wrx2, wry2] = p(x1, y1, h);
-          const [wrx3, wry3] = p(x1, y1, 0);
+          // Right interior curb
+          const [cr0x, cr0y] = p(x1, y0, 0);
+          const [cr1x, cr1y] = p(x1, y0, h);
+          const [cr2x, cr2y] = p(x1, y1, h);
+          const [cr3x, cr3y] = p(x1, y1, 0);
 
           ctx.beginPath();
-          ctx.moveTo(wrx0, wry0);
-          ctx.lineTo(wrx1, wry1);
-          ctx.lineTo(wrx2, wry2);
-          ctx.lineTo(wrx3, wry3);
+          ctx.moveTo(cr0x, cr0y);
+          ctx.lineTo(cr1x, cr1y);
+          ctx.lineTo(cr2x, cr2y);
+          ctx.lineTo(cr3x, cr3y);
           ctx.closePath();
-          ctx.fillStyle = "rgba(11, 27, 51, 0.35)";
+          ctx.fillStyle = "rgba(10, 18, 30, 0.55)";
           ctx.fill();
           ctx.strokeStyle = "rgba(200, 161, 90, 0.35)";
-          ctx.lineWidth = 0.8;
+          ctx.lineWidth = 0.7;
           ctx.stroke();
 
-          // Delicate gold rim on top of curb
+          // Polished champagne gold top coping
           ctx.beginPath();
-          ctx.moveTo(wlx2, wly2);
-          ctx.lineTo(wlx1, wly1);
-          ctx.lineTo(wrx2, wry2);
-          ctx.strokeStyle = "rgba(200, 161, 90, 0.55)";
+          ctx.moveTo(cl2x, cl2y);
+          ctx.lineTo(cl1x, cl1y);
+          ctx.lineTo(cr2x, cr2y);
+          ctx.strokeStyle = "rgba(200, 161, 90, 0.7)";
           ctx.lineWidth = 1;
           ctx.stroke();
         }
 
-        // ── Room label badge with glass pill backdrop ──
-        const [labelX, labelY] = p(
+        // ── 7. Architectural Hairline Leader Labels (Inspo Reference) ──
+        const [anchorX, anchorY] = p(
           x0 + room.widthM / 2,
           y0 + room.lengthM / 2,
-          project === isoProject ? 0.05 : 0
+          0.02
         );
 
         ctx.save();
         const roomName = room.name.toUpperCase();
-        const areaText = `${(room.widthM * room.lengthM).toFixed(1)} M²`;
-        const fontSize = Math.max(9, Math.min(12, scale * 0.3));
+        const areaVal = room.widthM * room.lengthM;
+        const areaStr = unit === "ft"
+          ? `${Math.round(areaVal * 10.7639)} SQ FT`
+          : `${areaVal.toFixed(1)} M²`;
 
+        const fontSize = Math.max(9, Math.min(11.5, scale * 0.28));
         ctx.font = `600 ${fontSize}px ${MONO_FONT}`;
-        const nameW = ctx.measureText(roomName).width;
-        const pillW = Math.max(nameW + 16, 68);
-        const pillH = fontSize * 2.3;
 
-        // Frosted glass pill backdrop
-        ctx.fillStyle = "rgba(11, 27, 51, 0.85)";
-        ctx.strokeStyle = "rgba(200, 161, 90, 0.4)";
-        ctx.lineWidth = 0.8;
+        const nameWidth = ctx.measureText(roomName).width;
+        const pillWidth = Math.max(nameWidth + 18, 70);
+        const pillHeight = fontSize * 2.2;
+
+        const labelYOffset = mode === "iso" ? -28 : -18;
+        const labelCenterY = anchorY + labelYOffset;
+
+        // Hairline leader line & center anchor dot
+        if (mode === "iso" && qualityTier !== "low") {
+          ctx.beginPath();
+          ctx.arc(anchorX, anchorY, 2.2, 0, Math.PI * 2);
+          ctx.fillStyle = "#C8A15A";
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.moveTo(anchorX, anchorY);
+          ctx.lineTo(anchorX, labelCenterY + pillHeight / 2);
+          ctx.strokeStyle = "rgba(200, 161, 90, 0.45)";
+          ctx.lineWidth = 0.8;
+          ctx.setLineDash([2, 2]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        // Frosted glass luxury pill badge
         ctx.beginPath();
         if (typeof ctx.roundRect === "function") {
-          ctx.roundRect(labelX - pillW / 2, labelY - pillH / 2, pillW, pillH, 3);
+          ctx.roundRect(
+            anchorX - pillWidth / 2,
+            labelCenterY - pillHeight / 2,
+            pillWidth,
+            pillHeight,
+            3
+          );
         } else {
-          ctx.rect(labelX - pillW / 2, labelY - pillH / 2, pillW, pillH);
+          ctx.rect(
+            anchorX - pillWidth / 2,
+            labelCenterY - pillHeight / 2,
+            pillWidth,
+            pillHeight
+          );
         }
+        ctx.fillStyle = "rgba(9, 17, 30, 0.88)";
         ctx.fill();
+        ctx.strokeStyle = "rgba(200, 161, 90, 0.4)";
+        ctx.lineWidth = 0.8;
         ctx.stroke();
 
         // Room name in ivory
         ctx.fillStyle = "#F6F1E7";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText(roomName, labelX, labelY - fontSize * 0.45);
+        ctx.fillText(roomName, anchorX, labelCenterY - fontSize * 0.42);
 
-        // Area in champagne gold
-        ctx.font = `500 ${Math.max(7.5, fontSize * 0.82)}px ${MONO_FONT}`;
+        // Square footage/meterage in champagne gold
+        ctx.font = `500 ${Math.max(7.5, fontSize * 0.8)}px ${MONO_FONT}`;
         ctx.fillStyle = "#C8A15A";
-        ctx.fillText(areaText, labelX, labelY + fontSize * 0.55);
+        ctx.fillText(areaStr, anchorX, labelCenterY + fontSize * 0.52);
+
         ctx.restore();
       },
-      [drawFloorTexture, drawPlanksOnFloor]
+      [drawPlankRow, drawAnimatedPlanks, drawFurnitureSilhouette, unit, qualityTier]
     );
 
-    // ── Full scene render ────────────────────────────────────────────────────
+    // ── Draw Dollhouse Perimeter Podium & Back Walls ─────────────────────────
+    const drawDollhouseFraming = useCallback(
+      (
+        ctx: CanvasRenderingContext2D,
+        scale: number,
+        ox: number,
+        oy: number,
+        cx: number,
+        cy: number,
+        mode: "iso" | "top",
+        rot: 0 | 90 | 180 | 270
+      ) => {
+        if (mode !== "iso" || rooms.length === 0) return;
+
+        const { minX, minY, maxX, maxY } = getHouseBounds();
+        const p = (wx: number, wy: number, wz: number) =>
+          projectPoint(wx, wy, wz, scale, ox, oy, mode, rot, cx, cy);
+
+        const pad = 0.35;
+        const bx0 = minX - pad;
+        const by0 = minY - pad;
+        const bx1 = maxX + pad;
+        const by1 = maxY + pad;
+
+        ctx.save();
+
+        // ── 1. Soft Ambient Drop Shadow under foundation ──
+        if (qualityTier !== "low") {
+          const [sh0x, sh0y] = p(bx0, by0, -PLINTH_DEPTH);
+          const [sh1x, sh1y] = p(bx1, by0, -PLINTH_DEPTH);
+          const [sh2x, sh2y] = p(bx1, by1, -PLINTH_DEPTH);
+          const [sh3x, sh3y] = p(bx0, by1, -PLINTH_DEPTH);
+
+          ctx.beginPath();
+          ctx.moveTo(sh0x, sh0y);
+          ctx.lineTo(sh1x, sh1y);
+          ctx.lineTo(sh2x, sh2y);
+          ctx.lineTo(sh3x, sh3y);
+          ctx.closePath();
+          ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+          ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
+          ctx.shadowBlur = 32;
+          ctx.shadowOffsetY = 16;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetY = 0;
+        }
+
+        // ── 2. Solid Architectural Foundation Podium ──
+        const [f0x, f0y] = p(bx0, by1, 0);
+        const [f1x, f1y] = p(bx1, by1, 0);
+        const [f2x, f2y] = p(bx1, by1, -PLINTH_DEPTH);
+        const [f3x, f3y] = p(bx0, by1, -PLINTH_DEPTH);
+
+        ctx.beginPath();
+        ctx.moveTo(f0x, f0y);
+        ctx.lineTo(f1x, f1y);
+        ctx.lineTo(f2x, f2y);
+        ctx.lineTo(f3x, f3y);
+        ctx.closePath();
+        ctx.fillStyle = "rgba(8, 14, 24, 0.95)";
+        ctx.fill();
+        ctx.strokeStyle = "rgba(200, 161, 90, 0.25)";
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+
+        const [r0x, r0y] = p(bx1, by0, 0);
+        const [r1x, r1y] = p(bx1, by1, 0);
+        const [r2x, r2y] = p(bx1, by1, -PLINTH_DEPTH);
+        const [r3x, r3y] = p(bx1, by0, -PLINTH_DEPTH);
+
+        ctx.beginPath();
+        ctx.moveTo(r0x, r0y);
+        ctx.lineTo(r1x, r1y);
+        ctx.lineTo(r2x, r2y);
+        ctx.lineTo(r3x, r3y);
+        ctx.closePath();
+        ctx.fillStyle = "rgba(12, 20, 34, 0.95)";
+        ctx.fill();
+        ctx.strokeStyle = "rgba(200, 161, 90, 0.25)";
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+
+        // ── 3. High Framing Back Walls (Dollhouse Look) ──
+        const ht = WALL_HEIGHT_TALL;
+
+        // Back wall (top-left)
+        const [bw0x, bw0y] = p(bx0, by0, 0);
+        const [bw1x, bw1y] = p(bx1, by0, 0);
+        const [bw2x, bw2y] = p(bx1, by0, ht);
+        const [bw3x, bw3y] = p(bx0, by0, ht);
+
+        ctx.beginPath();
+        ctx.moveTo(bw0x, bw0y);
+        ctx.lineTo(bw1x, bw1y);
+        ctx.lineTo(bw2x, bw2y);
+        ctx.lineTo(bw3x, bw3y);
+        ctx.closePath();
+        ctx.fillStyle = "rgba(14, 22, 36, 0.9)";
+        ctx.fill();
+        ctx.strokeStyle = "rgba(200, 161, 90, 0.4)";
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+
+        // Champagne gold top crown header
+        ctx.beginPath();
+        ctx.moveTo(bw3x, bw3y);
+        ctx.lineTo(bw2x, bw2y);
+        ctx.strokeStyle = "rgba(200, 161, 90, 0.85)";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        ctx.restore();
+      },
+      [rooms, getHouseBounds, qualityTier]
+    );
+
+    // ── Full Scene Render ────────────────────────────────────────────────────
     const render = useCallback(
       (
         drawnPlanks?: Array<{ roomId: string; plankIndex: number }>,
@@ -513,8 +944,9 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
-        const { scale, ox, oy } = getFitParams(canvas);
-        const project = viewModeRef.current === "iso" ? isoProject : topProject;
+        const { scale, ox, oy, cx, cy } = getFitParams(canvas);
+        const mode = viewModeRef.current;
+        const rot = rotationRef.current;
 
         const dpr = Math.min(
           typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1,
@@ -525,36 +957,58 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Fill background
-        ctx.fillStyle = "#0B1B33";
+        // ── Background: Smooth Luxury Moody Navy Vignette ──
+        const bgGrad = ctx.createRadialGradient(
+          canvas.width / 2,
+          canvas.height / 2,
+          canvas.width * 0.1,
+          canvas.width / 2,
+          canvas.height / 2,
+          canvas.width * 0.7
+        );
+        bgGrad.addColorStop(0, "#0C182A");
+        bgGrad.addColorStop(1, "#070E1A");
+        ctx.fillStyle = bgGrad;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Reset transform to CSS pixels with DPR scale
+        // Apply DPR scaling
         ctx.scale(dpr, dpr);
 
         const cssWidth = canvas.clientWidth || canvas.width / dpr;
         const cssHeight = canvas.clientHeight || canvas.height / dpr;
 
-        // Subtle architectural grid dots in background
+        // Subtle architectural blueprint dot grid
         if (qualityTier !== "low") {
-          ctx.fillStyle = "rgba(200, 161, 90, 0.05)";
-          for (let gx = 12; gx < cssWidth; gx += 28) {
-            for (let gy = 12; gy < cssHeight; gy += 28) {
+          ctx.fillStyle = "rgba(200, 161, 90, 0.04)";
+          for (let gx = 16; gx < cssWidth; gx += 32) {
+            for (let gy = 16; gy < cssHeight; gy += 32) {
               ctx.beginPath();
-              ctx.arc(gx, gy, 0.8, 0, Math.PI * 2);
+              ctx.arc(gx, gy, 0.75, 0, Math.PI * 2);
               ctx.fill();
             }
           }
         }
 
-        // Sort rooms: in iso view, back rooms first (painter's algorithm)
+        // ── 1. Draw Dollhouse Foundation & Exterior Framing ──
+        drawDollhouseFraming(ctx, scale, ox, oy, cx, cy, mode, rot);
+
+        // ── 2. Sort Rooms: Back-to-Front Painter's Algorithm ──
         const sortedRooms = [...rooms].sort((a, b) => {
-          if (viewModeRef.current === "iso") {
-            return a.gridX + a.gridY - (b.gridX + b.gridY);
+          if (mode === "iso") {
+            const rotFactor =
+              rot === 0
+                ? (a.gridX + a.gridY) - (b.gridX + b.gridY)
+                : rot === 90
+                  ? (a.gridY - a.gridX) - (b.gridY - b.gridX)
+                  : rot === 180
+                    ? -(a.gridX + a.gridY) + (b.gridX + b.gridY)
+                    : -(a.gridY - a.gridX) + (b.gridY - b.gridX);
+            return rotFactor;
           }
           return 0;
         });
 
+        // ── 3. Draw All Rooms ──
         for (const room of sortedRooms) {
           const color = colorMap[room.colorId] ?? colorMap["natural-french-oak"];
           if (!color) continue;
@@ -566,37 +1020,56 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
             scale,
             ox,
             oy,
-            project,
+            cx,
+            cy,
+            mode,
+            rot,
             drawnPlanks,
             layouts
           );
         }
 
-        // HUD view mode badge in top-left
+        // ── 4. HUD View Mode Indicator (Top Left) ──
         ctx.save();
         ctx.font = `600 10px ${MONO_FONT}`;
-        ctx.fillStyle = "rgba(200, 161, 90, 0.7)";
+        ctx.fillStyle = "rgba(200, 161, 90, 0.75)";
         ctx.textAlign = "left";
         ctx.fillText(
-          viewModeRef.current === "iso"
-            ? "ISOMETRIC CUTAWAY · 30° ORTHOGRAPHIC"
-            : "FLOOR PLAN · 2D TOP-DOWN SCHEMATIC",
-          14,
-          22
+          mode === "iso"
+            ? `ISOMETRIC DOLLHOUSE · 30° ORTHOGRAPHIC · ${rot}° ROTATION`
+            : "ARCHITECTURAL FLOOR PLAN · 2D SCHEMATIC",
+          16,
+          24
+        );
+
+        ctx.font = `400 9px ${MONO_FONT}`;
+        ctx.fillStyle = "rgba(246, 241, 231, 0.4)";
+        ctx.fillText(
+          "Schematic layout · Site survey will confirm exact architectural bounds",
+          16,
+          38
         );
         ctx.restore();
 
         ctx.restore();
       },
-      [rooms, colorMap, qualityTier, getFitParams, drawRoom]
+      [
+        rooms,
+        colorMap,
+        qualityTier,
+        getFitParams,
+        drawDollhouseFraming,
+        drawRoom,
+      ]
     );
 
-    // ── Animation loop ───────────────────────────────────────────────────────
+    // ── Animation Loop ───────────────────────────────────────────────────────
     const startAnimLoop = useCallback(() => {
       const anim = animStateRef.current;
       if (!anim || !anim.active) return;
 
-      const PLANKS_PER_FRAME = qualityTier === "low" ? 999999 : qualityTier === "medium" ? 6 : 3;
+      const PLANKS_PER_FRAME =
+        qualityTier === "low" ? 999999 : qualityTier === "medium" ? 6 : 3;
 
       let added = 0;
       while (added < PLANKS_PER_FRAME) {
@@ -608,12 +1081,15 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
         }
 
         const currentLayout = anim.layouts[anim.roomIndex];
-        if (!currentLayout) { anim.roomIndex++; continue; }
+        if (!currentLayout) {
+          anim.roomIndex++;
+          continue;
+        }
 
         if (anim.plankIndex >= currentLayout.plankPositions.length) {
           anim.roomIndex++;
           anim.plankIndex = 0;
-          added = 0; // pause one frame between rooms for effect
+          added = 0; // Brief frame pause between rooms for natural click sequence
           break;
         }
 
@@ -631,16 +1107,13 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
       animRef.current = requestAnimationFrame(startAnimLoop);
     }, [qualityTier, render, onPlankProgress, onAnimationComplete]);
 
-    // ── Exposed API ──────────────────────────────────────────────────────────
+    // ── Exposed Imperative Ref API ───────────────────────────────────────────
     useImperativeHandle(
       ref,
       () => ({
         triggerPlankAnimation(layouts, cMap) {
           if (animRef.current) cancelAnimationFrame(animRef.current);
-          const total = layouts.reduce(
-            (s, l) => s + l.plankPositions.length,
-            0
-          );
+          const total = layouts.reduce((s, l) => s + l.plankPositions.length, 0);
           animStateRef.current = {
             active: true,
             layouts,
@@ -657,7 +1130,6 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
           if (animRef.current) cancelAnimationFrame(animRef.current);
           const anim = animStateRef.current;
           if (!anim) return;
-          // Fill all planks instantly
           anim.drawnPlanks = anim.layouts.flatMap((l) =>
             l.plankPositions.map((_, i) => ({ roomId: l.roomId, plankIndex: i }))
           );
@@ -679,10 +1151,11 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
         },
         setView(mode) {
           viewModeRef.current = mode;
-          render(
-            animStateRef.current?.drawnPlanks,
-            animStateRef.current?.layouts
-          );
+          render(animStateRef.current?.drawnPlanks, animStateRef.current?.layouts);
+        },
+        setRotation(angle) {
+          rotationRef.current = angle;
+          render(animStateRef.current?.drawnPlanks, animStateRef.current?.layouts);
         },
         exportPng() {
           return canvasRef.current?.toDataURL("image/png") ?? "";
@@ -691,7 +1164,7 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
       [render, startAnimLoop, onAnimationComplete]
     );
 
-    // ── Resize + initial render ──────────────────────────────────────────────
+    // ── Resize Observer & Sync ───────────────────────────────────────────────
     useEffect(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -700,7 +1173,7 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
 
       const updateSize = () => {
         const { width, height } = parent.getBoundingClientRect();
-        if (width === 0 || height === 0) return;
+        if (width === 0 || height === 0) { requestAnimationFrame(updateSize); return; }
         const dpr = Math.min(window.devicePixelRatio ?? 1, qualityTier === "low" ? 1 : 2);
         canvas.width = Math.round(width * dpr);
         canvas.height = Math.round(height * dpr);
@@ -717,38 +1190,87 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
 
     useEffect(() => {
       viewModeRef.current = viewMode;
-      render(
-        animStateRef.current?.drawnPlanks,
-        animStateRef.current?.layouts
-      );
+      render(animStateRef.current?.drawnPlanks, animStateRef.current?.layouts);
     }, [viewMode, render]);
 
     useEffect(() => {
       zoomRef.current = zoom;
-      render(
-        animStateRef.current?.drawnPlanks,
-        animStateRef.current?.layouts
-      );
+      render(animStateRef.current?.drawnPlanks, animStateRef.current?.layouts);
     }, [zoom, render]);
+
+    useEffect(() => {
+      rotationRef.current = rotation;
+      render(animStateRef.current?.drawnPlanks, animStateRef.current?.layouts);
+    }, [rotation, render]);
+
+    useEffect(() => {
+      showFurnitureRef.current = showFurniture;
+      render(animStateRef.current?.drawnPlanks, animStateRef.current?.layouts);
+    }, [showFurniture, render]);
 
     useEffect(() => {
       render();
     }, [render]);
 
-    // Cleanup on unmount
     useEffect(() => {
       return () => {
         if (animRef.current) cancelAnimationFrame(animRef.current);
       };
     }, []);
 
+    const { spanX, spanY } = getHouseBounds();
+
     return (
-      <canvas
-        ref={canvasRef}
-        className={`block w-full h-full ${className}`}
-        aria-label="Isometric floor plan visualiser"
-      />
+      <div className="relative w-full h-full select-none">
+        <canvas
+          ref={canvasRef}
+          className={`block w-full h-full ${className}`}
+          aria-label="Isometric architectural floor plan visualiser"
+        />
+
+        {/* ── Mini "View Floor plan ↗" Card (Inspired by Reference Image) ── */}
+        <div className="absolute top-4 right-4 z-30">
+          <button
+            type="button"
+            onClick={onToggleViewMode}
+            className="group flex items-center gap-3 p-2.5 pr-3.5 rounded-sm bg-brand-navy-card/90 hover:bg-brand-navy-light/95 border border-brand-gold/30 hover:border-brand-gold backdrop-blur-md shadow-xl transition-all duration-300"
+            title="Toggle between 3D Dollhouse cutaway and 2D floor plan schematic"
+          >
+            {/* Mini Wireframe Schematic Icon */}
+            <div className="w-10 h-10 rounded-xs bg-brand-navy border border-brand-gold/25 p-1 flex items-center justify-center">
+              <svg viewBox="0 0 32 32" className="w-full h-full text-brand-gold">
+                <rect
+                  x="4"
+                  y="4"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeDasharray="2 1"
+                />
+                <rect x="7" y="7" width="10" height="9" fill="rgba(200,161,90,0.2)" stroke="currentColor" strokeWidth="0.8" />
+                <rect x="19" y="7" width="6" height="9" fill="rgba(200,161,90,0.15)" stroke="currentColor" strokeWidth="0.8" />
+                <rect x="7" y="18" width="18" height="7" fill="rgba(200,161,90,0.15)" stroke="currentColor" strokeWidth="0.8" />
+              </svg>
+            </div>
+
+            <div className="text-left">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-mono text-brand-gold uppercase tracking-widest font-bold">
+                  {viewMode === "iso" ? "2D Floor Plan" : "3D Dollhouse"}
+                </span>
+                <span className="text-[10px] font-mono text-brand-gold transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                  ↗
+                </span>
+              </div>
+              <p className="text-[9px] font-sans text-brand-ivory/60">
+                {viewMode === "iso" ? "Switch to schematic" : "Switch to 3D cutaway"}
+              </p>
+            </div>
+          </button>
+        </div>
+      </div>
     );
   }
 );
-

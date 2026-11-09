@@ -1,13 +1,19 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PlannerShell — master state manager for the isometric house planner
-// Coordinates: RoomSetup → CanvasView → ColorPicker → Quote → Share
+// PlannerShell — Master state & view controller for the Isometric House Planner
+//
+// Follows the architectural dollhouse reference (WhatsApp inspo) in luxury
+// deep navy & champagne gold.
+//
+// Steps:
+//   1. "setup"  → Client enters room measurements & chooses template preset
+//   2. "design" → 3D orthographic dollhouse cutaway with SPC floor styling,
+//                 animated click-lock plank laying, live quotes, and sharing.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import React, { useState, useRef, useCallback, useMemo } from "react";
 import {
-  RotateCcw,
   Map,
   Layers,
   Calculator,
@@ -18,6 +24,7 @@ import {
   Eye,
   Play,
   SkipForward,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Room, PlannerDesign, MeasurementUnit, QualityTier } from "@/lib/planner/types";
@@ -32,10 +39,11 @@ import { ColorCompareSlider } from "./ColorCompareSlider";
 import { IsometricHouseCanvas, type IsometricCanvasRef } from "./IsometricHouseCanvas";
 import { TEMPLATES } from "@/lib/planner/templates";
 
-type PlannerTab = "rooms" | "colours" | "quote" | "compare";
+type PlannerStep = "setup" | "design";
+type PlannerTab = "colours" | "rooms" | "quote" | "compare";
 type ViewMode = "iso" | "top";
 
-/** Detect device quality tier */
+/** Detect device hardware tier for smooth 60fps operation */
 function detectQualityTier(): QualityTier {
   if (typeof window === "undefined") return "medium";
   const cores = navigator.hardwareConcurrency ?? 2;
@@ -46,14 +54,20 @@ function detectQualityTier(): QualityTier {
 }
 
 export function PlannerShell() {
-  // ── State: Preloaded with 3-Bedroom architectural layout for instant 3D view ──
+  // ── Step 1 (Setup Measurements) vs Step 2 (3D Design & Finishing) ─────────
+  const [step, setStep] = useState<PlannerStep>("setup");
+
+  // Preload with 2-Bedroom architectural layout for the setup form
   const [rooms, setRooms] = useState<Room[]>(() =>
-    TEMPLATES["3bed"].map((r) => ({ ...r, id: nanoid() }))
+    TEMPLATES["2bed"].map((r) => ({ ...r, id: nanoid() }))
   );
+
   const [globalColorId, setGlobalColorId] = useState(DEFAULT_COLOR_ID);
   const [perRoomColors, setPerRoomColors] = useState(false);
   const [tab, setTab] = useState<PlannerTab>("colours");
   const [viewMode, setViewMode] = useState<ViewMode>("iso");
+  const [rotation, setRotation] = useState<0 | 90 | 180 | 270>(0);
+  const [showFurniture, setShowFurniture] = useState<boolean>(true);
   const [zoom, setZoom] = useState(1);
   const [unit, setUnit] = useState<MeasurementUnit>("m");
   const [qualityTier] = useState<QualityTier>(detectQualityTier);
@@ -70,7 +84,6 @@ export function PlannerShell() {
   // ── Build colorMap from rooms + global default ───────────────────────────
   const colorMap = useMemo(() => {
     const map: Record<string, ReturnType<typeof getColorById>> = {};
-    // Always include all SPC colors by ID
     for (const c of SPC_COLORS) map[c.id] = c;
     return map;
   }, []);
@@ -81,13 +94,12 @@ export function PlannerShell() {
     for (const room of rooms) {
       const colorId = perRoomColors ? room.colorId : globalColorId;
       result[room.colorId] = getColorById(colorId);
-      // Override: map room's colorId to whatever it should be
       result[colorId] = getColorById(colorId);
     }
     return { ...colorMap, ...result };
   }, [rooms, globalColorId, perRoomColors, colorMap]);
 
-  // ── Effective rooms with resolved colors ─────────────────────────────────
+  // Effective rooms with resolved colors
   const effectiveRooms = useMemo(() => {
     if (perRoomColors) return rooms;
     return rooms.map((r) => ({ ...r, colorId: globalColorId }));
@@ -105,7 +117,7 @@ export function PlannerShell() {
     []
   );
 
-  // ── Lay planks ───────────────────────────────────────────────────────────
+  // ── Lay planks animation trigger ─────────────────────────────────────────
   const layPlanks = useCallback(() => {
     const layouts = calculateQuote(effectiveRooms).layouts;
     setQuote(calculateQuote(effectiveRooms));
@@ -121,16 +133,35 @@ export function PlannerShell() {
     }
   }, [effectiveRooms, resolvedColorMap, reducedMotion]);
 
-  // ── Confirm room setup and move to finishes ─────────────────────────────
+  // ── Transition from Setup Screen to 3D Isometric View ────────────────────
   const handleConfirmRooms = useCallback(() => {
     if (rooms.length === 0) return;
+    setStep("design");
     setTab("colours");
     setTimeout(() => {
       canvasRef.current?.setView("iso");
-    }, 300);
+    }, 250);
   }, [rooms]);
 
-  // ── Share / save (Supabase) ──────────────────────────────────────────────
+  // ── 90° Snap Rotation ────────────────────────────────────────────────────
+  const handleRotate = useCallback(() => {
+    setRotation((prev) => {
+      const next = ((prev + 90) % 360) as 0 | 90 | 180 | 270;
+      canvasRef.current?.setRotation(next);
+      return next;
+    });
+  }, []);
+
+  // ── Toggle ISO / 2D View ─────────────────────────────────────────────────
+  const toggleViewMode = useCallback(() => {
+    setViewMode((prev) => {
+      const next = prev === "iso" ? "top" : "iso";
+      canvasRef.current?.setView(next);
+      return next;
+    });
+  }, []);
+
+  // ── Share / Save Design ──────────────────────────────────────────────────
   const handleShare = useCallback(async () => {
     if (!quote) return;
     const design: PlannerDesign = {
@@ -155,7 +186,6 @@ export function PlannerShell() {
         );
       }
     } catch {
-      // Fallback: generate a local code
       setShareCode(nanoid().slice(0, 6).toUpperCase());
     }
   }, [quote, effectiveRooms, globalColorId, perRoomColors]);
@@ -182,20 +212,66 @@ export function PlannerShell() {
     { id: "compare", icon: <SlidersHorizontal className="w-4 h-4" />, label: "Compare" },
   ];
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // STEP 1: INITIAL ROOM MEASUREMENT & TEMPLATE SELECTION SCREEN
+  // ══════════════════════════════════════════════════════════════════════════
+  if (step === "setup") {
+    return (
+      <div className="min-h-screen bg-brand-navy pt-28 sm:pt-36 pb-20 px-4">
+        <div className="container mx-auto max-w-3xl">
+          {/* Header */}
+          <div className="mb-8 space-y-2.5 text-center sm:text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-navy-card border border-brand-gold/30 text-[10px] font-mono tracking-widest text-brand-gold uppercase">
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-gold animate-pulse" />
+              <span>Architectural Room Planner · Step 1 of 2</span>
+            </div>
+            <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-light text-brand-ivory uppercase leading-tight">
+              Enter Your <span className="italic text-brand-gold">Measurements</span>
+            </h1>
+            <p className="text-xs sm:text-sm font-sans text-brand-ivory/70 max-w-xl leading-relaxed">
+              Select an architectural floor layout template or specify custom room dimensions.
+              Next, preview your house as a 3D isometric cutaway with realistic SPC planks,
+              warm illumination, and instant box counts.
+            </p>
+          </div>
+
+          {/* Room setup card */}
+          <div className="p-5 sm:p-8 rounded-xs bg-brand-navy-card border border-brand-gold/20 shadow-2xl">
+            <RoomSetupPanel
+              rooms={rooms}
+              onRoomsChange={setRooms}
+              onConfirm={handleConfirmRooms}
+              unit={unit}
+              onUnitChange={setUnit}
+            />
+          </div>
+
+          <p className="mt-6 text-[11px] font-mono text-brand-ivory/40 text-center leading-relaxed">
+            Schematic generated from entered dimensions. Final measurements verified during the MarvelRise site consultation.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // STEP 2: 3D ISOMETRIC DOLLHOUSE CUTAWAY & FLOORING FINISHES STUDIO
+  // ══════════════════════════════════════════════════════════════════════════
   return (
-    <div className="w-full bg-brand-navy flex flex-col overflow-hidden" style={{ height: "calc(100dvh - 72px)" }}>
-      {/* Top bar */}
-      <div className="border-b border-brand-gold/15 bg-brand-navy-deep px-4 py-2.5 flex items-center justify-between gap-4 shrink-0">
+    // Note: pt-[72px] sm:pt-[80px] clears the fixed navbar completely so top controls are never covered!
+    <div className="w-full bg-brand-navy flex flex-col overflow-hidden h-[100dvh] pt-[72px] sm:pt-[80px]">
+      {/* Top bar — 100% visible, unobstructed, and clickable */}
+      <div className="border-b border-brand-gold/15 bg-brand-navy-deep px-4 py-2.5 flex items-center justify-between gap-4 shrink-0 z-30">
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => setTab("rooms")}
-            className="text-[11px] font-mono text-brand-gold hover:text-brand-gold-light uppercase tracking-wider transition-colors flex items-center gap-1 font-semibold"
+            onClick={() => setStep("setup")}
+            className="text-[11px] font-mono text-brand-gold hover:text-brand-gold-light uppercase tracking-wider transition-colors flex items-center gap-1.5 font-semibold bg-brand-navy px-2.5 py-1 rounded-xs border border-brand-gold/25"
           >
-            <span>← Edit Rooms &amp; Presets</span>
+            <span>← Edit Measurements &amp; Rooms</span>
           </button>
-          <div className="w-px h-4 bg-brand-gold/20" />
-          <span className="text-[11px] font-mono text-brand-ivory/70 uppercase tracking-wider">
+          <div className="w-px h-4 bg-brand-gold/20 hidden sm:block" />
+          <span className="text-[11px] font-mono text-brand-ivory/70 uppercase tracking-wider hidden sm:inline-block">
             {rooms.length} room{rooms.length !== 1 ? "s" : ""} ·{" "}
             {rooms.reduce((s, r) => s + r.widthM * r.lengthM, 0).toFixed(1)} m²
           </span>
@@ -203,14 +279,14 @@ export function PlannerShell() {
 
         {/* View controls */}
         <div className="flex items-center gap-2">
-          {/* View toggle */}
+          {/* View toggle (ISO vs 2D) */}
           <div className="flex rounded-xs overflow-hidden border border-brand-gold/20">
             <button
               type="button"
-              title="Isometric view"
+              title="Isometric dollhouse cutaway"
               onClick={() => { setViewMode("iso"); canvasRef.current?.setView("iso"); }}
               className={cn(
-                "px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider transition-colors flex items-center gap-1",
+                "px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider transition-colors flex items-center gap-1 cursor-pointer",
                 viewMode === "iso"
                   ? "bg-brand-gold text-brand-navy font-bold"
                   : "bg-brand-navy text-brand-ivory/60 hover:text-brand-ivory"
@@ -220,10 +296,10 @@ export function PlannerShell() {
             </button>
             <button
               type="button"
-              title="Top-down floor plan"
+              title="Top-down 2D architectural schematic"
               onClick={() => { setViewMode("top"); canvasRef.current?.setView("top"); }}
               className={cn(
-                "px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider transition-colors flex items-center gap-1",
+                "px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider transition-colors flex items-center gap-1 cursor-pointer",
                 viewMode === "top"
                   ? "bg-brand-gold text-brand-navy font-bold"
                   : "bg-brand-navy text-brand-ivory/60 hover:text-brand-ivory"
@@ -233,35 +309,78 @@ export function PlannerShell() {
             </button>
           </div>
 
-          {/* Zoom */}
+          {/* Rotate 90° button (in ISO mode) */}
+          {viewMode === "iso" && (
+            <button
+              type="button"
+              title="Rotate dollhouse 90°"
+              onClick={handleRotate}
+              className="px-2.5 py-1.5 rounded-xs border border-brand-gold/25 bg-brand-navy hover:bg-brand-navy-light text-brand-gold hover:text-brand-gold-light transition-colors flex items-center gap-1.5 text-[10px] font-mono cursor-pointer"
+            >
+              <RotateCw className="w-3.5 h-3.5" />
+              <span>{rotation}°</span>
+            </button>
+          )}
+
+          {/* Furniture silhouettes toggle */}
+          {viewMode === "iso" && (
+            <button
+              type="button"
+              title="Toggle architectural furniture silhouettes"
+              onClick={() => setShowFurniture((f) => !f)}
+              className={cn(
+                "px-2.5 py-1.5 text-[10px] font-mono uppercase tracking-wider rounded-xs border transition-colors flex items-center gap-1 cursor-pointer",
+                showFurniture
+                  ? "bg-brand-gold/20 border-brand-gold/50 text-brand-gold font-semibold"
+                  : "bg-brand-navy border-brand-gold/20 text-brand-ivory/50 hover:text-brand-ivory"
+              )}
+            >
+              <Sparkles className="w-3 h-3" />
+              <span className="hidden sm:inline">Decor</span> {showFurniture ? "ON" : "OFF"}
+            </button>
+          )}
+
+          {/* Metric / Imperial Unit Toggle */}
+          <button
+            type="button"
+            title="Toggle measurement units (metres / feet)"
+            onClick={() => setUnit((u) => (u === "m" ? "ft" : "m"))}
+            className="px-2.5 py-1.5 rounded-xs border border-brand-gold/25 bg-brand-navy text-[10px] font-mono text-brand-gold/80 hover:text-brand-gold uppercase font-semibold transition-colors cursor-pointer"
+          >
+            {unit === "m" ? "M²" : "SQ FT"}
+          </button>
+
+          {/* Zoom controls */}
           <button
             type="button"
             onClick={() => setZoom((z) => Math.max(0.5, z - 0.15))}
-            className="p-1.5 text-brand-ivory/60 hover:text-brand-ivory transition-colors"
+            className="p-1.5 text-brand-ivory/60 hover:text-brand-ivory transition-colors cursor-pointer"
+            title="Zoom out"
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </button>
-          <span className="text-[10px] font-mono text-brand-ivory/50 w-10 text-center">
+          <span className="text-[10px] font-mono text-brand-ivory/50 w-9 text-center hidden sm:inline-block">
             {Math.round(zoom * 100)}%
           </span>
           <button
             type="button"
             onClick={() => setZoom((z) => Math.min(2.5, z + 0.15))}
-            className="p-1.5 text-brand-ivory/60 hover:text-brand-ivory transition-colors"
+            className="p-1.5 text-brand-ivory/60 hover:text-brand-ivory transition-colors cursor-pointer"
+            title="Zoom in"
           >
             <ZoomIn className="w-3.5 h-3.5" />
           </button>
 
           {/* Quality badge */}
-          <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-full bg-brand-navy border border-brand-gold/15 text-[9px] font-mono text-brand-gold/50 uppercase tracking-wider">
+          <div className="hidden lg:flex items-center gap-1.5 px-2 py-1 rounded-full bg-brand-navy border border-brand-gold/15 text-[9px] font-mono text-brand-gold/50 uppercase tracking-wider">
             {qualityTier} quality
           </div>
         </div>
       </div>
 
-      {/* Main layout: canvas + sidebar */}
+      {/* Main layout: canvas viewport + sidebar */}
       <div className="flex-1 flex overflow-hidden">
-        {/* ── Canvas ── */}
+        {/* ── 3D Dollhouse Canvas Viewport ── */}
         <div className="flex-1 relative min-h-[400px] overflow-hidden bg-brand-navy-deep">
           <IsometricHouseCanvas
             ref={canvasRef}
@@ -270,58 +389,60 @@ export function PlannerShell() {
             qualityTier={qualityTier}
             viewMode={viewMode}
             zoom={zoom}
-            onPlankProgress={(laid, total) =>
-              setPlankProgress({ laid, total })
-            }
+            rotation={rotation}
+            showFurniture={showFurniture}
+            unit={unit}
+            onPlankProgress={(laid, total) => setPlankProgress({ laid, total })}
             onAnimationComplete={() => setIsAnimating(false)}
+            onToggleViewMode={toggleViewMode}
             className="w-full h-full"
           />
 
           {/* Animation controls overlay */}
           {isAnimating && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2">
+            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
               <button
                 type="button"
                 onClick={() => { canvasRef.current?.skipAnimation(); setIsAnimating(false); }}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xs bg-brand-navy-deep/90 border border-brand-gold/40 text-brand-ivory text-xs font-mono uppercase tracking-wider backdrop-blur-sm"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xs bg-brand-navy-deep/95 border border-brand-gold/50 text-brand-ivory text-xs font-mono uppercase tracking-wider backdrop-blur-md shadow-xl"
               >
-                <SkipForward className="w-3.5 h-3.5" />
-                Skip
+                <SkipForward className="w-3.5 h-3.5 text-brand-gold" />
+                Skip Animation
               </button>
             </div>
           )}
 
           {/* Replay button after animation completes */}
           {!isAnimating && plankProgress.total > 0 && plankProgress.laid >= plankProgress.total && (
-            <div className="absolute bottom-4 right-4">
+            <div className="absolute bottom-5 right-5 z-20">
               <button
                 type="button"
                 onClick={() => {
                   setIsAnimating(true);
                   canvasRef.current?.replayAnimation();
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xs bg-brand-navy-deep/90 border border-brand-gold/30 text-brand-ivory/70 hover:text-brand-ivory text-[10px] font-mono uppercase tracking-wider backdrop-blur-sm transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xs bg-brand-navy-deep/90 border border-brand-gold/30 text-brand-ivory/80 hover:text-brand-ivory text-[10px] font-mono uppercase tracking-wider backdrop-blur-md transition-colors shadow-lg"
               >
-                <Play className="w-3 h-3" />
-                Replay
+                <Play className="w-3 h-3 text-brand-gold" />
+                Replay Animation
               </button>
             </div>
           )}
         </div>
 
-        {/* ── Sidebar ── */}
-        <div className="w-[320px] xl:w-[360px] shrink-0 border-l border-brand-gold/15 flex flex-col bg-brand-navy overflow-hidden">
-          {/* Tabs */}
-          <div className="flex border-b border-brand-gold/15 shrink-0">
+        {/* ── Right Control Sidebar ── */}
+        <div className="w-[320px] xl:w-[370px] shrink-0 border-l border-brand-gold/15 flex flex-col bg-brand-navy overflow-hidden">
+          {/* Navigation Tabs */}
+          <div className="flex border-b border-brand-gold/15 shrink-0 bg-brand-navy-deep/60">
             {sidebarTabs.map((t) => (
               <button
                 key={t.id}
                 type="button"
                 onClick={() => setTab(t.id)}
                 className={cn(
-                  "flex-1 flex flex-col items-center gap-0.5 py-3 text-[9px] font-mono uppercase tracking-wider transition-all duration-200",
+                  "flex-1 flex flex-col items-center gap-1 py-3 text-[9px] font-mono uppercase tracking-wider transition-all duration-200 cursor-pointer",
                   tab === t.id
-                    ? "text-brand-gold border-b-2 border-brand-gold bg-brand-navy-card"
+                    ? "text-brand-gold border-b-2 border-brand-gold bg-brand-navy-card font-semibold"
                     : "text-brand-ivory/40 hover:text-brand-ivory/70 border-b-2 border-transparent"
                 )}
               >
@@ -331,18 +452,8 @@ export function PlannerShell() {
             ))}
           </div>
 
-          {/* Tab content */}
-          <div className="flex-1 overflow-y-auto p-4 scrollbar-luxury">
-            {tab === "rooms" && (
-              <RoomSetupPanel
-                rooms={rooms}
-                onRoomsChange={setRooms}
-                onConfirm={() => setTab("colours")}
-                unit={unit}
-                onUnitChange={setUnit}
-              />
-            )}
-
+          {/* Tab content area with ample bottom clearance (pb-24) so nothing cuts off */}
+          <div className="flex-1 overflow-y-auto p-4 pb-24 scrollbar-luxury">
             {tab === "colours" && (
               <SpcColorPicker
                 rooms={rooms}
@@ -358,6 +469,16 @@ export function PlannerShell() {
                 onDirectionChange={handleDirectionChange}
                 onLayPlanks={layPlanks}
                 isAnimating={isAnimating}
+              />
+            )}
+
+            {tab === "rooms" && (
+              <RoomSetupPanel
+                rooms={rooms}
+                onRoomsChange={setRooms}
+                onConfirm={() => setTab("colours")}
+                unit={unit}
+                onUnitChange={setUnit}
               />
             )}
 
@@ -383,4 +504,3 @@ export function PlannerShell() {
     </div>
   );
 }
-

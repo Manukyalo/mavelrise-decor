@@ -44,7 +44,7 @@ export function SpcColorPicker({
   const flooringRooms = rooms.filter((r) => r.hasFlooring);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 pb-14">
       <div>
         <h2 className="font-display text-xl text-brand-ivory uppercase tracking-wide">
           Floor Colour &amp; Direction

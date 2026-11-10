@@ -5,13 +5,20 @@
 // Computes live line items for SPC flooring, WPC panels, marble, lamps & decor.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import React, { useMemo } from "react";
-import { Share2, MessageCircle, Sparkles, Layers, Building, Lightbulb, CheckCircle2 } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { useRouter } from "@/i18n/routing";
+import {
+  Share2,
+  MessageCircle,
+  Sparkles,
+  FileText,
+  Send,
+  Loader2,
+  CheckCircle2,
+  ChevronRight,
+} from "lucide-react";
 import type { QuoteSummary, Room, QuoteLineItem } from "@/lib/planner/types";
 import {
-  PLANK_LENGTH_MM,
-  PLANK_WIDTH_MM,
-  PLANKS_PER_BOX,
   BOX_COVERAGE_SQM,
 } from "@/lib/planner/geometry";
 import {
@@ -21,6 +28,7 @@ import {
   getDecorByCode,
 } from "@/lib/planner/pairings";
 import { getColorById } from "@/lib/planner/colors";
+import { calculateQuoteProposal } from "@/lib/planner/quoteEngine";
 
 const SPC_PRICE_PER_SQM = 2400; // Benchmark KES per m² for 5.5mm/6mm click-lock
 
@@ -47,6 +55,8 @@ export function PlankQuotePanel({
   shareCode,
   onShare,
 }: Props) {
+  const router = useRouter();
+  const [isGenerating, setIsGenerating] = useState(false);
   const progress = total > 0 ? Math.round((laid / total) * 100) : 0;
   const spcColor = getColorById(globalColorId);
 
@@ -75,7 +85,6 @@ export function PlankQuotePanel({
     const wpcCounts: Record<string, { sqm: number; rooms: string[] }> = {};
     wpcRooms.forEach((r) => {
       const code = r.wallFinishCode!;
-      // Standard feature wall: width * 2.8m height
       const area = Math.round(r.widthM * 2.8 * 10) / 10;
       if (!wpcCounts[code]) wpcCounts[code] = { sqm: 0, rooms: [] };
       wpcCounts[code].sqm += area;
@@ -181,21 +190,82 @@ export function PlankQuotePanel({
     return lineItems.reduce((acc, item) => acc + item.totalPriceKes, 0);
   }, [lineItems]);
 
-  // WhatsApp formatted inquiry message with complete bill of materials
-  const handleComprehensiveWhatsApp = () => {
-    let msg = `Hello MarvelRise Decor,\n\nI have designed my complete interior package on your 3D visualizer:\n\n`;
-    lineItems.forEach((item, idx) => {
-      msg += `${idx + 1}. ${item.name} (${item.code})\n   • Qty: ${item.quantity} ${item.unit} | Est: KES ${item.totalPriceKes.toLocaleString()}\n`;
-    });
-    msg += `\nTotal Estimated Investment: KES ${grandTotalKes.toLocaleString()}\n`;
-    if (shareCode) msg += `Design Share Code: ${shareCode}\n`;
-    msg += `\nPlease confirm product availability and schedule my site survey.`;
+  // Generate & Navigate to Official Proposal Document
+  const handleGenerateProposal = async () => {
+    setIsGenerating(true);
+    try {
+      const proposal = calculateQuoteProposal(rooms, "supply_only", 10);
+      await fetch("/api/quote/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          quoteNumber: proposal.quoteNumber,
+          quoteData: proposal,
+          supplyMode: proposal.supplyMode,
+          totalKes: proposal.grandTotalKes,
+        }),
+      });
+
+      router.push(`/quote/${proposal.quoteNumber}`);
+    } catch (err) {
+      console.error("[handleGenerateProposal] Error:", err);
+      // Fallback direct navigate
+      const randNum = `MRD-Q-${Math.floor(100000 + Math.random() * 900000)}`;
+      router.push(`/quote/${randNum}`);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // WhatsApp Hand-off (Shop reserve message)
+  const handleReserveWhatsApp = async () => {
+    const proposal = calculateQuoteProposal(rooms, "supply_only", 10);
+    const quoteUrl = typeof window !== "undefined"
+      ? `${window.location.origin}/en/quote/${proposal.quoteNumber}`
+      : `https://mavelrise-decor.vercel.app/en/quote/${proposal.quoteNumber}`;
+
+    // Background persist
+    fetch("/api/quote/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        quoteNumber: proposal.quoteNumber,
+        quoteData: proposal,
+        supplyMode: proposal.supplyMode,
+        totalKes: proposal.grandTotalKes,
+      }),
+    }).catch(() => {});
+
+    let msg = `Hello MarvelRise Decor,\n\nI want to reserve my finishes quote:\n`;
+    msg += `• Quote Ref: ${proposal.quoteNumber}\n`;
+    msg += `• Total Rooms: ${rooms.length} (${proposal.metrics.totalGrossAreaSqm} m²)\n`;
+    msg += `• Primary Floor: ${spcColor.name} (${spcColor.code || "GJ6345-3"})\n`;
+    msg += `• Boxes Needed: ${proposal.metrics.totalBoxes} Boxes (incl. 10% wastage)\n`;
+    msg += `• Estimated Total: KES ${grandTotalKes.toLocaleString()}\n`;
+    msg += `• View Full Proposal: ${quoteUrl}\n\n`;
+    msg += `Please confirm stock and book my free on-site survey in Nairobi.`;
 
     const phone = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "254719113343";
     window.open(
       `https://wa.me/${phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(msg)}`,
       "_blank"
     );
+  };
+
+  // Send to Friend / Contractor
+  const handleSendToFriend = () => {
+    const proposal = calculateQuoteProposal(rooms, "supply_only", 10);
+    const quoteUrl = typeof window !== "undefined"
+      ? `${window.location.origin}/en/quote/${proposal.quoteNumber}`
+      : `https://mavelrise-decor.vercel.app/en/quote/${proposal.quoteNumber}`;
+
+    let msg = `Hi, here is our interior finishes estimate from MarvelRise Decor:\n`;
+    msg += `• Quote No: ${proposal.quoteNumber}\n`;
+    msg += `• Area: ${proposal.metrics.totalGrossAreaSqm} m² (${proposal.metrics.totalBoxes} boxes)\n`;
+    msg += `• Total: KES ${grandTotalKes.toLocaleString()}\n`;
+    msg += `Check out the complete specification here: ${quoteUrl}`;
+
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
   if (!quote) {
@@ -230,27 +300,9 @@ export function PlankQuotePanel({
           Architectural Estimate
         </h2>
         <p className="text-[10px] font-mono text-brand-ivory/40 mt-0.5">
-          {rooms.length} Rooms Configured · Multi-Finish Suite
+          {rooms.length} Rooms Configured · Live Multi-Finish Breakdown
         </p>
       </div>
-
-      {/* Plank laying progress (if animating) */}
-      {(isAnimating || (total > 0 && laid < total)) && (
-        <div className="space-y-2 p-3 bg-black/40 rounded-xs border border-white/5">
-          <div className="flex items-center justify-between text-[10px] font-mono text-brand-ivory/60">
-            <span>Click-Lock Installation</span>
-            <span className="text-amber-300 font-semibold">
-              {laid.toLocaleString()} / {total.toLocaleString()} planks
-            </span>
-          </div>
-          <div className="h-1 rounded-full bg-brand-navy overflow-hidden">
-            <div
-              className="h-full bg-amber-400 transition-all duration-100"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-      )}
 
       {/* Grand Total Highlight Monolith */}
       <div className="p-4 rounded-sm bg-gradient-to-br from-[#121c2e] to-[#070d18] border border-amber-400/30 shadow-xl space-y-1">
@@ -261,21 +313,33 @@ export function PlankQuotePanel({
           KES {grandTotalKes.toLocaleString()}
         </div>
         <div className="text-[10px] font-mono text-white/40">
-          Includes material & estimated installation allowance
+          Based on 10% wastage allowance &amp; benchmark atelier rates
         </div>
       </div>
 
-      {/* Line Items List */}
+      {/* Key Metrics Pill Grid */}
+      <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+        <div className="p-2.5 rounded-xs bg-black/40 border border-white/5">
+          <span className="text-white/40 block text-[9px] uppercase">Net Area</span>
+          <span className="text-white font-medium">{quote.totalAreaSqm.toFixed(1)} m²</span>
+        </div>
+        <div className="p-2.5 rounded-xs bg-black/40 border border-white/5">
+          <span className="text-amber-300 block text-[9px] uppercase">Boxes (10% Waste)</span>
+          <span className="text-amber-300 font-medium">{quote.totalBoxes} Boxes</span>
+        </div>
+      </div>
+
+      {/* Selected Line Items Preview */}
       <div className="space-y-3">
         <span className="text-[10px] font-mono uppercase tracking-widest text-white/50 block">
-          Selected Finishing Specifications ({lineItems.length} items)
+          Configured Finishing Specifications ({lineItems.length} lines)
         </span>
 
-        <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1 scrollbar-luxury">
+        <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1 scrollbar-luxury">
           {lineItems.map((item) => (
             <div
               key={item.id}
-              className="p-3 rounded-xs bg-[#050a14] border border-white/5 space-y-1.5"
+              className="p-3 rounded-xs bg-[#050a14] border border-white/5 space-y-1"
             >
               <div className="flex items-start justify-between gap-2">
                 <div>
@@ -290,46 +354,55 @@ export function PlankQuotePanel({
                   KES {item.totalPriceKes.toLocaleString()}
                 </span>
               </div>
-
-              <div className="flex items-center justify-between text-[10px] font-mono text-white/40 pt-1 border-t border-white/5">
-                <span>
-                  {item.quantity} {item.unit} @ KES {item.unitPriceKes.toLocaleString()}
-                </span>
-                {item.details && (
-                  <span className="text-white/30 truncate max-w-[150px]">
-                    {item.details}
-                  </span>
-                )}
+              <div className="text-[10px] font-mono text-white/40">
+                {item.quantity} {item.unit} @ KES {item.unitPriceKes.toLocaleString()}
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="space-y-2 pt-2 border-t border-white/10">
+      {/* Primary Actions (Phase 6 Specifications) */}
+      <div className="space-y-2.5 pt-2 border-t border-white/10">
+        {/* 1. Official Proposal Document Button */}
         <button
           type="button"
-          onClick={handleComprehensiveWhatsApp}
-          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xs bg-amber-400 hover:bg-amber-300 text-black text-xs font-mono uppercase tracking-widest font-semibold transition-all shadow-xl shadow-amber-400/20"
+          onClick={handleGenerateProposal}
+          disabled={isGenerating}
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-xs border border-amber-400/40 bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 font-mono text-xs uppercase tracking-widest font-semibold transition-all"
         >
-          <MessageCircle className="w-4 h-4" />
-          <span>Inquire Complete Package on WhatsApp</span>
+          {isGenerating ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <FileText className="w-4 h-4" />
+          )}
+          <span>View &amp; Print Official Proposal (PDF)</span>
+          <ChevronRight className="w-3.5 h-3.5" />
         </button>
 
+        {/* 2. Reserve this Quote on WhatsApp */}
         <button
           type="button"
-          onClick={onShare}
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xs border border-white/20 hover:border-amber-400/50 text-white/70 hover:text-white text-xs font-mono uppercase tracking-wider transition-all"
+          onClick={handleReserveWhatsApp}
+          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xs bg-amber-400 hover:bg-amber-300 text-black font-mono text-xs uppercase tracking-widest font-semibold transition-all shadow-xl shadow-amber-400/20"
         >
-          <Share2 className="w-3.5 h-3.5 text-amber-400" />
-          <span>{shareCode ? `Share Code: ${shareCode}` : "Save & Share Configuration"}</span>
+          <MessageCircle className="w-4 h-4" />
+          <span>Reserve this Quote on WhatsApp</span>
+        </button>
+
+        {/* 3. Send to a Friend or Contractor */}
+        <button
+          type="button"
+          onClick={handleSendToFriend}
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xs border border-white/10 hover:border-white/30 text-white/70 hover:text-white text-xs font-mono uppercase tracking-wider transition-all"
+        >
+          <Send className="w-3.5 h-3.5 text-amber-400" />
+          <span>Send to a Friend or Contractor</span>
         </button>
       </div>
 
-      {/* Advisory disclaimer */}
       <p className="text-[10px] font-mono text-white/35 leading-relaxed">
-        *Estimates are calculated from entered room dimensions and benchmark finish rates. Exact material cut counts and subfloor conditions are finalized during the MarvelRise on-site survey in Nairobi.
+        *7-day price guarantee. Final quote confirmed during the MarvelRise site consultation in Nairobi.
       </p>
     </div>
   );

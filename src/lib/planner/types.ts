@@ -26,6 +26,8 @@ export type TemplateType =
 export type MeasurementUnit = "m" | "ft";
 export type QualityTier = "high" | "medium" | "low";
 
+export type WallFinishType = "none" | "wpc" | "marble";
+
 export interface Room {
   id: string;
   name: string;
@@ -39,6 +41,37 @@ export interface Room {
   colorId: string;
   plankDirection: PlankDirection;
   hasFlooring: boolean;
+  /** Phase 5: Mixed-Product Visualizer features */
+  wallFinishType?: WallFinishType;
+  wallFinishCode?: string;
+  lampCode?: string;
+  lampLightOn?: boolean;
+  decorCode?: string;
+}
+
+export interface StylePairing {
+  id?: string;
+  floorCode: string;
+  styleTitle: string;
+  styleSubtitle?: string;
+  wpcCode: string;
+  marbleCode: string;
+  lampCode: string;
+  decorCode?: string;
+  narrative: string;
+  paletteColors?: string[];
+}
+
+export interface QuoteLineItem {
+  id: string;
+  category: "spc" | "wpc" | "marble" | "lamp" | "decor";
+  name: string;
+  code: string;
+  quantity: number;
+  unit: string;
+  unitPriceKes: number;
+  totalPriceKes: number;
+  details?: string;
 }
 
 export interface SpcColor {

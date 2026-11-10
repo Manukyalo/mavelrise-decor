@@ -30,22 +30,25 @@ import {
   SkipForward,
   Sparkles,
   Building,
+  Lightbulb,
+  Wand2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Room, PlannerDesign, MeasurementUnit, QualityTier, TemplateType } from "@/lib/planner/types";
+import type { Room, PlannerDesign, MeasurementUnit, QualityTier, TemplateType, StylePairing } from "@/lib/planner/types";
 import { calculateQuote } from "@/lib/planner/geometry";
 import { getColorById, SPC_COLORS } from "@/lib/planner/colors";
 import { nanoid } from "@/lib/planner/nanoid";
 import { DEFAULT_COLOR_ID } from "@/lib/planner/colors";
 import { RoomSetupPanel } from "./RoomSetupPanel";
 import { SpcColorPicker } from "./SpcColorPicker";
+import { MixedProductControls } from "./MixedProductControls";
 import { PlankQuotePanel } from "./PlankQuotePanel";
 import { ColorCompareSlider } from "./ColorCompareSlider";
 import { IsometricHouseCanvas, type IsometricCanvasRef } from "./IsometricHouseCanvas";
 import { TEMPLATES } from "@/lib/planner/templates";
 
 type PlannerStep = "setup" | "design";
-type PlannerTab = "colours" | "rooms" | "quote" | "compare";
+type PlannerTab = "colours" | "walls" | "lighting" | "decor" | "pairing" | "quote" | "rooms" | "compare";
 type ViewMode = "iso" | "top";
 
 /** Detect device hardware tier for smooth 60fps operation */
@@ -239,12 +242,42 @@ export function PlannerShell() {
     window.open(`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_PHONE ?? "254712345678"}?text=${msg}`, "_blank");
   }, [quote, rooms, globalColorId, shareCode, selectedTemplate]);
 
+  const handleUpdateRoom = useCallback((roomId: string, patch: Partial<Room>) => {
+    setRooms((prev) =>
+      prev.map((r) => (r.id === roomId ? { ...r, ...patch } : r))
+    );
+  }, []);
+
+  const handleApplyToAllRooms = useCallback((patch: Partial<Room>) => {
+    setRooms((prev) => prev.map((r) => ({ ...r, ...patch })));
+  }, []);
+
+  const handleApplyCompleteLook = useCallback((pairing: StylePairing) => {
+    const matchedColor = getColorById(pairing.floorCode);
+    setGlobalColorId(matchedColor.id);
+    setPerRoomColors(false);
+
+    setRooms((prev) =>
+      prev.map((r, idx) => ({
+        ...r,
+        colorId: matchedColor.id,
+        wallFinishType: "wpc",
+        wallFinishCode: pairing.wpcCode,
+        lampCode: pairing.lampCode,
+        lampLightOn: true,
+        decorCode: idx === 0 ? pairing.decorCode : undefined,
+      }))
+    );
+  }, []);
+
   // ── Sidebar tabs config ──────────────────────────────────────────────────
   const sidebarTabs: Array<{ id: PlannerTab; icon: React.ReactNode; label: string }> = [
-    { id: "colours", icon: <Layers className="w-4 h-4" />, label: "Colour" },
-    { id: "rooms", icon: <Map className="w-4 h-4" />, label: "Rooms" },
-    { id: "quote", icon: <Calculator className="w-4 h-4" />, label: "Quote" },
-    { id: "compare", icon: <SlidersHorizontal className="w-4 h-4" />, label: "Compare" },
+    { id: "colours", icon: <Layers className="w-3.5 h-3.5" />, label: "Floor" },
+    { id: "walls", icon: <Building className="w-3.5 h-3.5" />, label: "Walls" },
+    { id: "lighting", icon: <Lightbulb className="w-3.5 h-3.5" />, label: "Lights" },
+    { id: "decor", icon: <Sparkles className="w-3.5 h-3.5" />, label: "Decor" },
+    { id: "pairing", icon: <Wand2 className="w-3.5 h-3.5" />, label: "Curated" },
+    { id: "quote", icon: <Calculator className="w-3.5 h-3.5" />, label: "Quote" },
   ];
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -537,6 +570,18 @@ export function PlannerShell() {
               />
             )}
 
+            {(tab === "walls" || tab === "lighting" || tab === "decor" || tab === "pairing") && (
+              <MixedProductControls
+                rooms={rooms}
+                selectedRoomId={selectedRoomId}
+                activeFloorCode={getColorById(globalColorId).code || "GJ6345-3"}
+                onUpdateRoom={handleUpdateRoom}
+                onApplyToAllRooms={handleApplyToAllRooms}
+                onApplyCompleteLook={handleApplyCompleteLook}
+                activeSubTab={tab}
+              />
+            )}
+
             {tab === "rooms" && (
               <RoomSetupPanel
                 rooms={rooms}
@@ -552,6 +597,8 @@ export function PlannerShell() {
             {tab === "quote" && (
               <PlankQuotePanel
                 quote={quote}
+                rooms={effectiveRooms}
+                globalColorId={globalColorId}
                 laid={plankProgress.laid}
                 total={plankProgress.total}
                 isAnimating={isAnimating}

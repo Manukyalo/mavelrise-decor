@@ -23,6 +23,11 @@ import React, {
   forwardRef,
 } from "react";
 import type { Room, SpcColor, QualityTier, PlankLayout, MeasurementUnit } from "@/lib/planner/types";
+import {
+  renderWallFinish,
+  renderPendantLampshade,
+  renderDecorArtifact,
+} from "./MixedProductRenderHelpers";
 
 // ── Projection Constants ──────────────────────────────────────────────────────
 const ISO_ANGLE = 30; // degrees from horizontal
@@ -749,6 +754,11 @@ export const IsometricHouseCanvas = forwardRef<IsometricCanvasRef, Props>(
           ctx.lineWidth = 1;
           ctx.stroke();
         }
+
+        // ── Phase 5 Mixed-Product Visualizer Elements ──
+        renderWallFinish(ctx, room, p, mode, WALL_HEIGHT_TALL * 0.75);
+        renderDecorArtifact(ctx, room, p, mode);
+        renderPendantLampshade(ctx, room, p, mode, qualityTier);
 
         // ── 7. Architectural Hairline Leader Labels (Inspo Reference) ──
         const [anchorX, anchorY] = p(

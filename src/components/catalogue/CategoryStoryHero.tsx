@@ -135,11 +135,10 @@ function SpcInteractiveStory({ progress }: { progress: number }) {
           return (
             <div
               key={layer.name}
-              className={`p-3 rounded-xs border transition-all duration-500 ${
-                isRevealed
+              className={`p-3 rounded-xs border transition-all duration-500 ${isRevealed
                   ? "bg-amber-400/10 border-amber-400/40 translate-x-2"
                   : "bg-black/30 border-white/5 opacity-40 translate-x-0"
-              }`}
+                }`}
             >
               <div className="flex items-center justify-between text-xs font-mono">
                 <span className="text-white font-medium">
@@ -288,16 +287,14 @@ function LampshadesInteractiveStory({ progress }: { progress: number }) {
           return (
             <div
               key={lamp.code}
-              className={`p-3 rounded-xs border text-center transition-all duration-700 ${
-                isLit
+              className={`p-3 rounded-xs border text-center transition-all duration-700 ${isLit
                   ? "bg-amber-400/15 border-amber-400/50 shadow-lg shadow-amber-400/20"
                   : "bg-black/40 border-white/5 opacity-40"
-              }`}
+                }`}
             >
               <div
-                className={`w-8 h-8 mx-auto rounded-full transition-all duration-700 ${
-                  isLit ? "bg-amber-400 shadow-[0_0_20px_#f59e0b]" : "bg-white/10"
-                }`}
+                className={`w-8 h-8 mx-auto rounded-full transition-all duration-700 ${isLit ? "bg-amber-400 shadow-[0_0_20px_#f59e0b]" : "bg-white/10"
+                  }`}
               />
               <span className="text-[10px] font-mono text-white/90 block mt-2 font-medium">
                 {lamp.code}
@@ -348,4 +345,3 @@ function DecorInteractiveStory({ progress }: { progress: number }) {
     </div>
   );
 }
-

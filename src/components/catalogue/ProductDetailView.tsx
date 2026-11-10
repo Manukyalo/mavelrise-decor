@@ -48,8 +48,7 @@ export function ProductDetailView({ product, locale }: ProductDetailViewProps) {
   const whatsappPhone =
     process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "254719113343";
   const whatsappMessage = encodeURIComponent(
-    `Hello MarvelRise Decor, I am inquiring about the ${product.name} (Code: ${product.code})${
-      selectedVariant ? ` in ${selectedVariant.label}` : ""
+    `Hello MarvelRise Decor, I am inquiring about the ${product.name} (Code: ${product.code})${selectedVariant ? ` in ${selectedVariant.label}` : ""
     }. Could you provide availability and a quote for my project?`
   );
   const whatsappUrl = `https://wa.me/${whatsappPhone.replace(/[^0-9]/g, "")}?text=${whatsappMessage}`;
@@ -131,10 +130,9 @@ export function ProductDetailView({ product, locale }: ProductDetailViewProps) {
               <div
                 className="absolute inset-0 bg-cover bg-center transition-transform duration-200"
                 style={{
-                  backgroundImage: `url(${
-                    product.images[activeImageIndex] ||
+                  backgroundImage: `url(${product.images[activeImageIndex] ||
                     "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80"
-                  })`,
+                    })`,
                   transformOrigin: `${zoomCoords.x}% ${zoomCoords.y}%`,
                   transform: isZooming ? "scale(2)" : "scale(1)",
                 }}
@@ -168,11 +166,10 @@ export function ProductDetailView({ product, locale }: ProductDetailViewProps) {
                 <button
                   key={idx}
                   onClick={() => setActiveImageIndex(idx)}
-                  className={`relative w-20 h-16 rounded-xs overflow-hidden border transition-all ${
-                    activeImageIndex === idx
-                      ? "border-amber-400 shadow-md shadow-amber-400/20 scale-105"
-                      : "border-white/10 opacity-60 hover:opacity-100"
-                  }`}
+                  className={`relative w-20 h-16 rounded-xs overflow-hidden border transition-all ${activeImageIndex === idx
+                    ? "border-amber-400 shadow-md shadow-amber-400/20 scale-105"
+                    : "border-white/10 opacity-60 hover:opacity-100"
+                    }`}
                 >
                   <div
                     className="w-full h-full bg-cover bg-center"
@@ -232,11 +229,10 @@ export function ProductDetailView({ product, locale }: ProductDetailViewProps) {
                     <button
                       key={v.sku}
                       onClick={() => setSelectedVariant(v)}
-                      className={`p-3.5 rounded-xs border text-left transition-all relative ${
-                        isSelected
-                          ? "bg-amber-400/15 border-amber-400 text-white shadow-lg shadow-amber-400/10"
-                          : "bg-black/30 border-white/10 text-white/60 hover:border-white/30 hover:text-white"
-                      }`}
+                      className={`p-3.5 rounded-xs border text-left transition-all relative ${isSelected
+                        ? "bg-amber-400/15 border-amber-400 text-white shadow-lg shadow-amber-400/10"
+                        : "bg-black/30 border-white/10 text-white/60 hover:border-white/30 hover:text-white"
+                        }`}
                     >
                       <div className="text-xs font-mono font-semibold tracking-wider">
                         {v.label}

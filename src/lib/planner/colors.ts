@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // SPC Colour Catalogue — MarvelRise Decor
-// Confirm all colour codes with client before launch.
+// Seeded with official brochure codes and architectural tone profiles.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { SpcColor } from "./types";
@@ -8,6 +8,7 @@ import type { SpcColor } from "./types";
 export const SPC_COLORS: SpcColor[] = [
   {
     id: "natural-french-oak",
+    code: "GJ6345-3",
     name: "Natural French Oak",
     collection: "Atelier Collection",
     hex: "#8B6340",
@@ -16,15 +17,17 @@ export const SPC_COLORS: SpcColor[] = [
   },
   {
     id: "smoked-walnut",
-    name: "Smoked Walnut",
-    collection: "Atelier Collection",
+    code: "GJ88076-34",
+    name: "Smoked Walnut / Charcoal Smoke",
+    collection: "Obsidian Series",
     hex: "#4A3222",
     grainHex: "#2E1D12",
     highlightHex: "#6B4A33",
   },
   {
     id: "nordic-ash",
-    name: "Nordic Ash",
+    code: "GJ6345-4",
+    name: "Nordic Blue Ash",
     collection: "Nordic Series",
     hex: "#C5B49A",
     grainHex: "#A89880",
@@ -32,6 +35,7 @@ export const SPC_COLORS: SpcColor[] = [
   },
   {
     id: "charcoal-noir",
+    code: "GJ88076-34-NOIR",
     name: "Charcoal Noir",
     collection: "Obsidian Series",
     hex: "#2A2A2A",
@@ -40,7 +44,8 @@ export const SPC_COLORS: SpcColor[] = [
   },
   {
     id: "ivory-driftwood",
-    name: "Ivory Driftwood",
+    code: "GJ6305-27",
+    name: "Desert Sand / Ivory Driftwood",
     collection: "Coastal Collection",
     hex: "#D4C4A8",
     grainHex: "#B8A88C",
@@ -48,7 +53,8 @@ export const SPC_COLORS: SpcColor[] = [
   },
   {
     id: "cognac-bourbon",
-    name: "Cognac Bourbon",
+    code: "GJ7518",
+    name: "Bamboo Honey Series",
     collection: "Atelier Collection",
     hex: "#7D4A1C",
     grainHex: "#5C3412",
@@ -56,6 +62,7 @@ export const SPC_COLORS: SpcColor[] = [
   },
   {
     id: "herringbone-grey",
+    code: "GJ-HB-GREY",
     name: "Herringbone Grey",
     collection: "Metropolitan Series",
     hex: "#7A7A7A",
@@ -64,6 +71,7 @@ export const SPC_COLORS: SpcColor[] = [
   },
   {
     id: "sahara-dune",
+    code: "GJ6305-27-DUNE",
     name: "Sahara Dune",
     collection: "Sahara Collection",
     hex: "#C4A97A",
@@ -74,10 +82,21 @@ export const SPC_COLORS: SpcColor[] = [
 
 export const DEFAULT_COLOR_ID = "natural-french-oak";
 
-export function getColorById(id: string): SpcColor {
-  return (
-    SPC_COLORS.find((c) => c.id === id) ??
-    (SPC_COLORS[0] as SpcColor)
-  );
-}
+/**
+ * Robust lookup by either id or brochure code (e.g. GJ6345-3 or G&J6345-3)
+ */
+export function getColorById(idOrCode: string): SpcColor {
+  if (!idOrCode) return SPC_COLORS[0] as SpcColor;
 
+  const normalized = idOrCode.replace(/&/g, "").toLowerCase();
+
+  const found = SPC_COLORS.find((c) => {
+    if (c.id === idOrCode || c.id === normalized) return true;
+    if (c.code && (c.code === idOrCode || c.code.toLowerCase().replace(/&/g, "") === normalized)) {
+      return true;
+    }
+    return false;
+  });
+
+  return found ?? (SPC_COLORS[0] as SpcColor);
+}

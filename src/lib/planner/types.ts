@@ -44,6 +44,7 @@ export interface Room {
 export interface SpcColor {
   id: string;
   name: string;
+  code?: string;
   collection: string;
   /** Primary wood tone hex */
   hex: string;

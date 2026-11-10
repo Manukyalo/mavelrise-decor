@@ -30,7 +30,7 @@ export function Header() {
   };
 
   const navLinks = [
-    { label: t("collections"), href: "/#product-lines" },
+    { label: t("collections"), href: "/collections" },
     { label: t("projects"), href: "/projects" },
     { label: "Room Planner", href: "/planner" },
     { label: t("about"), href: "/#how-it-works" },

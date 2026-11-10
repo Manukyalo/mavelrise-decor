@@ -16,7 +16,7 @@
 //   - Exact box & waste calculations for instant contractor-grade quoting.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import React, { useState, useRef, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   Map,
   Layers,
@@ -89,6 +89,20 @@ export function PlannerShell() {
   const [reducedMotion] = useState(
     () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
   );
+
+  // Read ?color=... from Catalogue "Add to Design" button
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const colorParam = params.get("color");
+    if (colorParam) {
+      const match = getColorById(colorParam);
+      if (match) {
+        setGlobalColorId(match.id);
+        setStep("design");
+      }
+    }
+  }, []);
 
   const canvasRef = useRef<IsometricCanvasRef>(null);
 

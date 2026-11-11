@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { Product, ProductVariant } from "@/types/catalogue";
 import { getSpcColorHex } from "@/lib/catalogue/colors";
-import { SpatialArViewer } from "@/components/ar/SpatialArViewer";
 import {
   Compass,
   MessageCircle,
@@ -15,8 +14,6 @@ import {
   Check,
   ChevronRight,
   Maximize2,
-  Camera,
-  Eye,
 } from "lucide-react";
 
 interface ProductDetailViewProps {
@@ -39,7 +36,6 @@ export function ProductDetailView({ product, locale }: ProductDetailViewProps) {
   // Zoomable texture lens state
   const [isZooming, setIsZooming] = useState(false);
   const [zoomCoords, setZoomCoords] = useState({ x: 50, y: 50 });
-  const [viewMode, setViewMode] = useState<"texture" | "ar">("texture");
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -109,101 +105,64 @@ export function ProductDetailView({ product, locale }: ProductDetailViewProps) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
         {/* Left Column: Zoomable Texture Close-Up & Parallax Gallery */}
         <div className="lg:col-span-7 space-y-6">
-          {/* Mode Selector Toggle: 2D Texture Lens vs 3D / Spatial AR */}
-          <div className="flex items-center gap-2 p-1 bg-[#060c18] border border-white/10 rounded-xs">
-            <button
-              type="button"
-              onClick={() => setViewMode("texture")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-mono uppercase tracking-wider rounded-xs transition-all ${
-                viewMode === "texture"
-                  ? "bg-amber-400 text-black font-semibold shadow-md shadow-amber-400/20"
-                  : "text-white/60 hover:text-white"
-              }`}
-            >
-              <Eye className="w-3.5 h-3.5" />
-              <span>{locale === "sw" ? "Muundo wa Karibu (2× Zoom)" : "Micro-Texture Lens (2×)"}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("ar")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-mono uppercase tracking-wider rounded-xs transition-all ${
-                viewMode === "ar"
-                  ? "bg-amber-400 text-black font-semibold shadow-md shadow-amber-400/20"
-                  : "text-white/60 hover:text-white"
-              }`}
-            >
-              <Camera className="w-3.5 h-3.5" />
-              <span>{locale === "sw" ? "Tazama Chumbani (3D / AR)" : "Spatial 3D & Room AR"}</span>
-            </button>
-          </div>
-
-          {/* Conditional View: 3D AR Viewer vs 2D Texture Lens */}
-          {viewMode === "ar" ? (
-            <SpatialArViewer
-              categorySlug={product.category?.slug}
-              productCode={product.code}
-              productName={displayName}
-              locale={locale}
-            />
-          ) : (
-            <div
-              className="relative h-[420px] sm:h-[500px] rounded-sm border border-amber-500/20 overflow-hidden cursor-crosshair bg-[#03060c] group"
-              onMouseEnter={() => setIsZooming(true)}
-              onMouseLeave={() => setIsZooming(false)}
-              onMouseMove={handleMouseMove}
-            >
-              {/* Visual Canvas (either color swatch simulation or photo) */}
-              {spcColorHex ? (
+          {/* Main Visualizer / Zoom Lens */}
+          <div
+            className="relative h-[420px] sm:h-[500px] rounded-sm border border-amber-500/20 overflow-hidden cursor-crosshair bg-[#03060c] group"
+            onMouseEnter={() => setIsZooming(true)}
+            onMouseLeave={() => setIsZooming(false)}
+            onMouseMove={handleMouseMove}
+          >
+            {/* Visual Canvas (either color swatch simulation or photo) */}
+            {spcColorHex ? (
+              <div
+                className="absolute inset-0 transition-transform duration-200"
+                style={{
+                  background: `linear-gradient(135deg, ${spcColorHex} 0%, #1a1410 100%)`,
+                  transformOrigin: `${zoomCoords.x}% ${zoomCoords.y}%`,
+                  transform: isZooming ? "scale(2.2)" : "scale(1)",
+                }}
+              >
+                {/* Wood Grain Simulation */}
                 <div
-                  className="absolute inset-0 transition-transform duration-200"
+                  className="absolute inset-0 opacity-25"
                   style={{
-                    background: `linear-gradient(135deg, ${spcColorHex} 0%, #1a1410 100%)`,
-                    transformOrigin: `${zoomCoords.x}% ${zoomCoords.y}%`,
-                    transform: isZooming ? "scale(2.2)" : "scale(1)",
-                  }}
-                >
-                  {/* Wood Grain Simulation */}
-                  <div
-                    className="absolute inset-0 opacity-25"
-                    style={{
-                      backgroundImage:
-                        "repeating-linear-gradient(0deg, transparent, transparent 15px, rgba(255,255,255,0.1) 16px, transparent 18px)",
-                    }}
-                  />
-                </div>
-              ) : (
-                <div
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-200"
-                  style={{
-                    backgroundImage: `url(${product.images[activeImageIndex] ||
-                      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80"
-                      })`,
-                    transformOrigin: `${zoomCoords.x}% ${zoomCoords.y}%`,
-                    transform: isZooming ? "scale(2)" : "scale(1)",
+                    backgroundImage:
+                      "repeating-linear-gradient(0deg, transparent, transparent 15px, rgba(255,255,255,0.1) 16px, transparent 18px)",
                   }}
                 />
-              )}
-
-              {/* Ambient Lighting Overlay */}
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-              {/* Lens Hint Pill */}
-              <div className="absolute bottom-4 right-4 pointer-events-none px-3 py-1.5 rounded-xs bg-black/70 backdrop-blur-md border border-white/10 text-[10px] font-mono text-white/70 flex items-center gap-1.5">
-                <Maximize2 className="w-3 h-3 text-amber-400" />
-                <span>Hover to examine micro-texture (2× zoom)</span>
               </div>
+            ) : (
+              <div
+                className="absolute inset-0 bg-cover bg-center transition-transform duration-200"
+                style={{
+                  backgroundImage: `url(${product.images[activeImageIndex] ||
+                    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80"
+                    })`,
+                  transformOrigin: `${zoomCoords.x}% ${zoomCoords.y}%`,
+                  transform: isZooming ? "scale(2)" : "scale(1)",
+                }}
+              />
+            )}
 
-              {/* Bottom Left: Finish badge */}
-              <div className="absolute bottom-4 left-4 pointer-events-none space-y-1">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-amber-300 block">
-                  {product.finish || "Architectural Surface"}
-                </span>
-                <span className="text-xs font-serif text-white block">
-                  {product.colour || "Standard Finish"}
-                </span>
-              </div>
+            {/* Ambient Lighting Overlay */}
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+            {/* Lens Hint Pill */}
+            <div className="absolute bottom-4 right-4 pointer-events-none px-3 py-1.5 rounded-xs bg-black/70 backdrop-blur-md border border-white/10 text-[10px] font-mono text-white/70 flex items-center gap-1.5">
+              <Maximize2 className="w-3 h-3 text-amber-400" />
+              <span>Hover to examine micro-texture (2× zoom)</span>
             </div>
-          )}
+
+            {/* Bottom Left: Finish badge */}
+            <div className="absolute bottom-4 left-4 pointer-events-none space-y-1">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-amber-300 block">
+                {product.finish || "Architectural Surface"}
+              </span>
+              <span className="text-xs font-serif text-white block">
+                {product.colour || "Standard Finish"}
+              </span>
+            </div>
+          </div>
 
           {/* Gallery Thumbnails */}
           {product.images && product.images.length > 1 && (
@@ -300,19 +259,6 @@ export function ProductDetailView({ product, locale }: ProductDetailViewProps) {
 
           {/* Action CTAs */}
           <div className="space-y-3 pt-2">
-            {/* Phase 10: See in My Room (Spatial AR) Button */}
-            <button
-              type="button"
-              onClick={() => {
-                setViewMode("ar");
-                window.scrollTo({ top: 120, behavior: "smooth" });
-              }}
-              className="w-full py-3.5 px-6 rounded-xs border border-amber-400/40 bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 font-mono text-xs uppercase tracking-widest font-semibold flex items-center justify-center gap-2 transition-all group"
-            >
-              <Camera className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
-              <span>{locale === "sw" ? "Tazama Chumbani Mwangu Kupitia AR" : "See in My Room (Spatial AR)"}</span>
-            </button>
-
             {/* Add to Design (Room Planner Integration) */}
             {isSpc && (
               <Link

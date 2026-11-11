@@ -16,9 +16,7 @@ import {
   Loader2,
   CheckCircle2,
   ChevronRight,
-  Camera,
 } from "lucide-react";
-import { SpatialArViewer } from "@/components/ar/SpatialArViewer";
 import type { QuoteSummary, Room, QuoteLineItem } from "@/lib/planner/types";
 import {
   BOX_COVERAGE_SQM,
@@ -62,7 +60,6 @@ export function PlankQuotePanel({
 }: Props) {
   const router = useRouter();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showArModal, setShowArModal] = useState(false);
   const progress = total > 0 ? Math.round((laid / total) * 100) : 0;
   const spcColor = getColorById(globalColorId);
   const isSw = locale === "sw";
@@ -241,7 +238,7 @@ export function PlankQuotePanel({
         supplyMode: proposal.supplyMode,
         totalKes: proposal.grandTotalKes,
       }),
-    }).catch(() => {});
+    }).catch(() => { });
 
     let msg = isSw
       ? `Hujambo MarvelRise Decor,\n\nNingependa kuhifadhi makadirio yangu:\n`
@@ -432,33 +429,11 @@ export function PlankQuotePanel({
           <Send className="w-3.5 h-3.5 text-amber-400" />
           <span>{t(locale, "planner.quote.sendFriend")}</span>
         </button>
-
-        {/* 4. Phase 10: Test Swatch in Real Room (AR) */}
-        <button
-          type="button"
-          onClick={() => setShowArModal(true)}
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xs border border-amber-500/30 bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 font-mono text-xs uppercase tracking-wider font-semibold transition-all"
-        >
-          <Camera className="w-3.5 h-3.5 text-amber-400" />
-          <span>{isSw ? "Jaribu Sampuli Chumbani Mwako (AR)" : "Test Floor Sample in Room (AR)"}</span>
-        </button>
       </div>
 
       <p className="text-[10px] font-mono text-white/35 leading-relaxed">
         *{t(locale, "planner.quote.guarantee")}
       </p>
-
-      {/* AR Modal */}
-      {showArModal && (
-        <SpatialArViewer
-          categorySlug="spc-flooring"
-          productCode={spcColor.code || "GJ6345-3"}
-          productName={spcColor.name}
-          locale={locale}
-          isModal={true}
-          onClose={() => setShowArModal(false)}
-        />
-      )}
     </div>
   );
 }

@@ -3,6 +3,9 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { DetailedQuoteProposal, SupplyMode, calculateQuoteProposal } from "@/lib/planner/quoteEngine";
+import { DeliveryFeeSelector, type DeliveryZone } from "./DeliveryFeeSelector";
+import { ShowroomMap } from "./ShowroomMap";
+import { t } from "@/lib/i18n/client";
 import {
   Printer,
   Share2,
@@ -32,6 +35,8 @@ export function ProposalDocumentView({
 }: ProposalDocumentViewProps) {
   const [supplyMode, setSupplyMode] = useState<SupplyMode>(initialProposal.supplyMode);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [deliveryZone, setDeliveryZone] = useState<DeliveryZone | null>(null);
+  const [deliveryIncluded, setDeliveryIncluded] = useState(false);
 
   // Recalculate if supply mode is toggled by user
   const proposal = React.useMemo(() => {
@@ -57,32 +62,61 @@ export function ProposalDocumentView({
     return calculateQuoteProposal(dummyRooms, supplyMode, initialProposal.wastagePct, initialProposal.quoteNumber);
   }, [supplyMode, initialProposal]);
 
+  const deliveryFeeKes = deliveryIncluded && deliveryZone ? deliveryZone.rate_kes : 0;
+  const effectiveGrandTotalKes = proposal.grandTotalKes + deliveryFeeKes;
+
   const shopPhone = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "254719113343";
   const cleanPhone = shopPhone.replace(/[^0-9]/g, "");
 
   // Unique quote link
   const quoteUrl = typeof window !== "undefined" ? window.location.href : `https://mavelrise-decor.vercel.app/${locale}/quote/${proposal.quoteNumber}`;
 
-  // 1. WhatsApp handoff to MarvelRise shop
+  // 1. WhatsApp handoff to MarvelRise shop (bilingual)
+  const isSw = locale === "sw";
+  const deliveryText = deliveryIncluded && deliveryZone
+    ? isSw
+      ? `\n• Uwasilishaji: ${deliveryZone.town} (KSh ${deliveryZone.rate_kes.toLocaleString()})`
+      : `\n• Site Delivery: ${deliveryZone.town} (KES ${deliveryZone.rate_kes.toLocaleString()})`
+    : "";
+
   const shopMessage = encodeURIComponent(
-    `Hello MarvelRise Decor,\n\n` +
-    `I would like to reserve my architectural finishes proposal:\n` +
-    `• Quote Ref: ${proposal.quoteNumber}\n` +
-    `• Total Area: ${proposal.metrics.totalGrossAreaSqm} m² (${proposal.metrics.totalBoxes} boxes)\n` +
-    `• Package: ${supplyMode === "supply_and_fit" ? "Supply & Fit (Turnkey)" : "Supply Only"}\n` +
-    `• Total Investment: KES ${proposal.grandTotalKes.toLocaleString()}\n` +
-    `• Full Proposal Link: ${quoteUrl}\n\n` +
-    `Please confirm material stock at Ruiru Membley and schedule our site inspection.`
+    isSw
+      ? `Hujambo MarvelRise Decor,\n\n` +
+      `Ningependa kuhifadhi makadirio yangu ya mapambo ya ndani:\n` +
+      `• Nambari ya Orodha: ${proposal.quoteNumber}\n` +
+      `• Jumla ya Eneo: ${proposal.metrics.totalGrossAreaSqm} m² (${proposal.metrics.totalBoxes} masanduku)\n` +
+      `• Mpango: ${supplyMode === "supply_and_fit" ? "Usambazaji na Ufungaji (Turnkey)" : "Usambazaji Peke Yake"}\n` +
+      `• Jumla ya Uwekezaji: KSh ${effectiveGrandTotalKes.toLocaleString()}` +
+      deliveryText + `\n` +
+      `• Kiungo cha Orodha Kamili: ${quoteUrl}\n\n` +
+      `Tafadhali thibitisha upatikanaji wa vifaa kwenye ghala la Ruiru Membley na upangilie ukaguzi wa eneo langu.`
+      : `Hello MarvelRise Decor,\n\n` +
+      `I would like to reserve my architectural finishes proposal:\n` +
+      `• Quote Ref: ${proposal.quoteNumber}\n` +
+      `• Total Area: ${proposal.metrics.totalGrossAreaSqm} m² (${proposal.metrics.totalBoxes} boxes)\n` +
+      `• Package: ${supplyMode === "supply_and_fit" ? "Supply & Fit (Turnkey)" : "Supply Only"}\n` +
+      `• Total Investment: KES ${effectiveGrandTotalKes.toLocaleString()}` +
+      deliveryText + `\n` +
+      `• Full Proposal Link: ${quoteUrl}\n\n` +
+      `Please confirm material stock at Ruiru Membley and schedule our site inspection.`
   );
   const shopWhatsAppUrl = `https://wa.me/${cleanPhone}?text=${shopMessage}`;
 
   // 2. WhatsApp message to send to friend / contractor
   const contractorMessage = encodeURIComponent(
-    `Hi, here is our interior finishes proposal from MarvelRise Decor:\n` +
-    `• Ref: ${proposal.quoteNumber}\n` +
-    `• Area: ${proposal.metrics.totalGrossAreaSqm} m² (${proposal.metrics.totalBoxes} boxes)\n` +
-    `• Estimated Total: KES ${proposal.grandTotalKes.toLocaleString()}\n` +
-    `View the full specification and room breakdown here: ${quoteUrl}`
+    isSw
+      ? `Hujambo, haya hapa makadirio ya mapambo ya ndani kutoka MarvelRise Decor:\n` +
+      `• Nambari ya Rejea: ${proposal.quoteNumber}\n` +
+      `• Eneo: ${proposal.metrics.totalGrossAreaSqm} m² (${proposal.metrics.totalBoxes} masanduku)\n` +
+      `• Jumla Inayokadiriwa: KSh ${effectiveGrandTotalKes.toLocaleString()}` +
+      deliveryText + `\n` +
+      `Tazama orodha kamili na maelezo ya vyumba hapa: ${quoteUrl}`
+      : `Hi, here is our interior finishes proposal from MarvelRise Decor:\n` +
+      `• Ref: ${proposal.quoteNumber}\n` +
+      `• Area: ${proposal.metrics.totalGrossAreaSqm} m² (${proposal.metrics.totalBoxes} boxes)\n` +
+      `• Estimated Total: KES ${effectiveGrandTotalKes.toLocaleString()}` +
+      deliveryText + `\n` +
+      `View the full specification and room breakdown here: ${quoteUrl}`
   );
   const contractorWhatsAppUrl = `https://wa.me/?text=${contractorMessage}`;
 
@@ -106,12 +140,12 @@ export function ProposalDocumentView({
             className="px-3.5 py-1.5 rounded-xs border border-white/10 text-white/70 hover:text-white text-xs font-mono uppercase tracking-wider transition-all flex items-center gap-1.5"
           >
             <Compass className="w-3.5 h-3.5 text-amber-400" />
-            <span>Return to 3D Planner</span>
+            <span>{t(locale, "quote.returnPlanner")}</span>
           </Link>
           <span className="text-white/20 text-xs font-mono">|</span>
           <div className="flex items-center gap-2 text-xs font-mono text-emerald-400">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Quote Verified &amp; Active</span>
+            <span>{isSw ? "Makadirio Yamethibitishwa na Yanafaa" : "Quote Verified & Active"}</span>
           </div>
         </div>
 
@@ -121,7 +155,7 @@ export function ProposalDocumentView({
             className="px-3.5 py-1.5 rounded-xs border border-white/20 hover:border-amber-400 text-white text-xs font-mono uppercase tracking-wider transition-all flex items-center gap-1.5"
           >
             <Share2 className="w-3.5 h-3.5 text-amber-400" />
-            <span>{copiedLink ? "Link Copied!" : "Share Link"}</span>
+            <span>{copiedLink ? (isSw ? "Kiungo Kimenakiliwa!" : "Link Copied!") : t(locale, "quote.copyLink")}</span>
           </button>
 
           <button
@@ -129,7 +163,7 @@ export function ProposalDocumentView({
             className="px-3.5 py-1.5 rounded-xs border border-white/20 hover:border-amber-400 text-white text-xs font-mono uppercase tracking-wider transition-all flex items-center gap-1.5"
           >
             <Printer className="w-3.5 h-3.5 text-amber-400" />
-            <span>Print Proposal (PDF)</span>
+            <span>{t(locale, "quote.print")}</span>
           </button>
         </div>
       </div>
@@ -182,10 +216,12 @@ export function ProposalDocumentView({
         <div className="p-4 rounded-sm bg-black/40 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
           <div className="space-y-1">
             <span className="text-xs font-mono uppercase tracking-widest text-amber-300 font-semibold block">
-              Installation &amp; Scope Mode
+              {isSw ? "Hali ya Ufungaji na Usambazaji" : "Installation & Scope Mode"}
             </span>
             <p className="text-xs text-white/60">
-              Toggle between supply of materials only or full turnkey installation by certified MarvelRise fitters.
+              {isSw
+                ? "Chagua kati ya usambazaji wa vifaa pekee au ufungaji kamili wa kitaalamu na mafundi wa MarvelRise."
+                : "Toggle between supply of materials only or full turnkey installation by certified MarvelRise fitters."}
             </p>
           </div>
 
@@ -193,20 +229,20 @@ export function ProposalDocumentView({
             <button
               onClick={() => setSupplyMode("supply_only")}
               className={`px-4 py-2 text-xs font-mono uppercase tracking-wider rounded-xs transition-all ${supplyMode === "supply_only"
-                  ? "bg-amber-400 text-black font-semibold shadow-md shadow-amber-400/20"
-                  : "text-white/60 hover:text-white"
+                ? "bg-amber-400 text-black font-semibold shadow-md shadow-amber-400/20"
+                : "text-white/60 hover:text-white"
                 }`}
             >
-              Supply Only
+              {t(locale, "quote.supplyOnly")}
             </button>
             <button
               onClick={() => setSupplyMode("supply_and_fit")}
               className={`px-4 py-2 text-xs font-mono uppercase tracking-wider rounded-xs transition-all ${supplyMode === "supply_and_fit"
-                  ? "bg-amber-400 text-black font-semibold shadow-md shadow-amber-400/20"
-                  : "text-white/60 hover:text-white"
+                ? "bg-amber-400 text-black font-semibold shadow-md shadow-amber-400/20"
+                : "text-white/60 hover:text-white"
                 }`}
             >
-              Supply &amp; Fit (Turnkey)
+              {t(locale, "quote.supplyAndFit")}
             </button>
           </div>
         </div>
@@ -456,19 +492,40 @@ export function ProposalDocumentView({
                   <tr className="bg-amber-500/5 print:bg-gray-100">
                     <td className="py-3 pr-4">
                       <span className="font-semibold text-amber-300 print:text-black block">
-                        Turnkey Certified Installation &amp; Fit-Out
+                        {isSw ? "Ufungaji na Usawazishaji wa Kisasa" : "Turnkey Certified Installation & Fit-Out"}
                       </span>
                       <span className="text-[10px] text-amber-200/60 print:text-black/50 block">
-                        Laser levelling, subfloor prep &amp; click-lock alignment by MarvelRise artisans
+                        {isSw ? "Upimaji wa laser, usawazishaji wa sakafu na kuunganisha mbao na mafundi wa MarvelRise" : "Laser levelling, subfloor prep & click-lock alignment by MarvelRise artisans"}
                       </span>
                     </td>
-                    <td className="py-3 px-3 text-amber-200/80 print:text-black">Turnkey Labour</td>
+                    <td className="py-3 px-3 text-amber-200/80 print:text-black">{isSw ? "Ufundi Kamili" : "Turnkey Labour"}</td>
                     <td className="py-3 px-3 text-right text-amber-300 print:text-black">
-                      Complete
+                      {isSw ? "Kamili" : "Complete"}
                     </td>
-                    <td className="py-3 px-3 text-right text-amber-200/80 print:text-black">Scope</td>
+                    <td className="py-3 px-3 text-right text-amber-200/80 print:text-black">{isSw ? "Kazi Yote" : "Scope"}</td>
                     <td className="py-3 pl-3 text-right font-semibold text-amber-300 print:text-black">
                       {proposal.breakdown.installationTotalKes.toLocaleString()}.00
+                    </td>
+                  </tr>
+                )}
+
+                {/* 10. Optional Delivery Line Item */}
+                {deliveryIncluded && deliveryZone && (
+                  <tr className="bg-emerald-500/5 print:bg-gray-100 border-t border-emerald-500/20 print:border-black/20">
+                    <td className="py-3 pr-4">
+                      <span className="font-semibold text-emerald-300 print:text-black block">
+                        {isSw ? "Uwasilishaji Hadi Eneo" : "Site Delivery & Logistics"}: {deliveryZone.town}
+                      </span>
+                      <span className="text-[10px] text-emerald-200/60 print:text-black/50 block">
+                        {deliveryZone.notes || (isSw ? "Usafirishaji wa moja kwa moja kutoka ghala la Ruiru Membley" : "Direct dispatch from Ruiru Membley central depot")}
+                        {!deliveryZone.is_confirmed && ` (${isSw ? "Inasubiri uthibitisho wa ukaguzi" : "Subject to site survey confirmation"})`}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 text-emerald-200/80 print:text-black">{isSw ? "Usafiri" : "Logistics"}</td>
+                    <td className="py-3 px-3 text-right text-emerald-300 print:text-black">1</td>
+                    <td className="py-3 px-3 text-right text-emerald-200/80 print:text-black">{deliveryZone.rate_kes.toLocaleString()}.00</td>
+                    <td className="py-3 pl-3 text-right font-semibold text-emerald-300 print:text-black">
+                      {deliveryZone.rate_kes.toLocaleString()}.00
                     </td>
                   </tr>
                 )}
@@ -477,23 +534,39 @@ export function ProposalDocumentView({
           </div>
         </div>
 
+        {/* Phase 8: Delivery Town Selector (Interactive) */}
+        <div className="pt-2 print:hidden">
+          <DeliveryFeeSelector
+            locale={locale}
+            onDeliveryChange={(zone, included) => {
+              setDeliveryZone(zone);
+              setDeliveryIncluded(included);
+            }}
+          />
+        </div>
+
         {/* Grand Total Summary Monolith */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 rounded-xs bg-[#060c18] border border-amber-500/30 print:border-black/30 print:bg-gray-50">
           <div className="space-y-1">
             <span className="text-xs font-mono uppercase tracking-widest text-amber-400 print:text-black font-semibold">
-              Total Proposed Investment
+              {t(locale, "quote.grandTotal")}
             </span>
             <div className="text-sm font-mono text-white/60 print:text-black/60">
               {proposal.supplyMode === "supply_and_fit"
-                ? "Includes all materials, hardware, and certified fitting"
-                : "Materials supply and site delivery"}
+                ? (isSw ? "Inajumuisha vifaa vyote, vifaa vya kuunganisha na ufungaji wa kitaalamu" : "Includes all materials, hardware, and certified fitting")
+                : (isSw ? "Usambazaji wa vifaa hadi kwenye tovuti" : "Materials supply and site delivery")}
+              {deliveryIncluded && deliveryZone && (
+                <span className="block text-emerald-400 text-xs mt-0.5 font-medium">
+                  + KSh {deliveryZone.rate_kes.toLocaleString()} {isSw ? "usafirishaji hadi" : "delivery to"} {deliveryZone.town}
+                </span>
+              )}
             </div>
           </div>
 
           <div className="text-left sm:text-right">
             <span className="text-xs font-mono text-white/40 block print:text-black/50">KES (Kenyan Shillings)</span>
             <div className="text-3xl sm:text-4xl font-serif text-white print:text-black font-medium tracking-tight">
-              KSh {proposal.grandTotalKes.toLocaleString()}
+              KSh {effectiveGrandTotalKes.toLocaleString()}
             </div>
           </div>
         </div>
@@ -501,17 +574,22 @@ export function ProposalDocumentView({
         {/* Advisory Terms & Conditions */}
         <div className="space-y-2 text-[11px] font-mono text-white/40 print:text-black/60 border-t border-white/10 print:border-black/20 pt-6">
           <div className="text-white/60 print:text-black/80 font-medium uppercase tracking-wider">
-            Important Tender &amp; Execution Notes:
+            {t(locale, "quote.termsTitle")}:
           </div>
           <p>
-            1. This quotation is an initial architectural estimate based on client-provided dimensions. Final quantities and subfloor leveling requirements will be verified during the on-site survey.
+            1. {t(locale, "quote.terms1")}
           </p>
           <p>
-            2. Prices are valid for 7 calendar days from issuance. Stock allocation is secured upon confirmation of the site consultation.
+            2. {t(locale, "quote.terms2")}
           </p>
           <p>
-            3. MarvelRise Decor provides a 10-year manufacturer warranty on all commercial-grade SPC flooring and 5 years on WPC fluted wall panels.
+            3. {t(locale, "quote.terms3")}
           </p>
+        </div>
+
+        {/* Phase 8: Showroom Location & Map */}
+        <div className="pt-6 border-t border-white/10 print:hidden">
+          <ShowroomMap locale={locale} />
         </div>
 
         {/* CTAs Bar (Hidden in Print) */}
@@ -525,7 +603,7 @@ export function ProposalDocumentView({
               className="py-4 px-6 rounded-xs bg-amber-400 hover:bg-amber-300 text-black font-mono text-xs uppercase tracking-widest font-semibold flex items-center justify-center gap-2.5 transition-all shadow-xl shadow-amber-400/20"
             >
               <MessageCircle className="w-4 h-4" />
-              <span>Reserve this Quote on WhatsApp</span>
+              <span>{t(locale, "quote.reserveWhatsApp")}</span>
             </a>
 
             {/* Secondary CTA: Send to Friend / Contractor */}
@@ -536,13 +614,13 @@ export function ProposalDocumentView({
               className="py-4 px-6 rounded-xs bg-[#0b1526] hover:bg-[#101e36] border border-amber-500/30 text-white font-mono text-xs uppercase tracking-widest font-semibold flex items-center justify-center gap-2.5 transition-all"
             >
               <Send className="w-4 h-4 text-amber-400" />
-              <span>Send to Friend or Contractor</span>
+              <span>{t(locale, "quote.sendContractor")}</span>
             </a>
           </div>
 
           <div className="text-center">
             <span className="text-[11px] font-mono text-white/40">
-              Prefer a direct consultation? Call our Ruiru showroom directly at{" "}
+              {isSw ? "Je, unapendelea mashauriano ya moja kwa moja? Piga simu ghala letu la Ruiru:" : "Prefer a direct consultation? Call our Ruiru showroom directly at"}{" "}
               <a href="tel:+254719113343" className="text-amber-300 hover:underline">
                 +254 719 113 343
               </a>

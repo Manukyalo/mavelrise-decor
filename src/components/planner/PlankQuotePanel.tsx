@@ -29,6 +29,7 @@ import {
 } from "@/lib/planner/pairings";
 import { getColorById } from "@/lib/planner/colors";
 import { calculateQuoteProposal } from "@/lib/planner/quoteEngine";
+import { t } from "@/lib/i18n/client";
 
 const SPC_PRICE_PER_SQM = 2400; // Benchmark KES per m² for 5.5mm/6mm click-lock
 
@@ -43,6 +44,7 @@ interface Props {
   onShare: () => void;
   onWhatsApp: () => void;
   whatsAppPhone: string;
+  locale?: string;
 }
 
 export function PlankQuotePanel({
@@ -54,11 +56,13 @@ export function PlankQuotePanel({
   isAnimating,
   shareCode,
   onShare,
+  locale = "en",
 }: Props) {
   const router = useRouter();
   const [isGenerating, setIsGenerating] = useState(false);
   const progress = total > 0 ? Math.round((laid / total) * 100) : 0;
   const spcColor = getColorById(globalColorId);
+  const isSw = locale === "sw";
 
   // Compute live multi-product line items from rooms state
   const lineItems = useMemo<QuoteLineItem[]>(() => {
@@ -221,8 +225,8 @@ export function PlankQuotePanel({
   const handleReserveWhatsApp = async () => {
     const proposal = calculateQuoteProposal(rooms, "supply_only", 10);
     const quoteUrl = typeof window !== "undefined"
-      ? `${window.location.origin}/en/quote/${proposal.quoteNumber}`
-      : `https://mavelrise-decor.vercel.app/en/quote/${proposal.quoteNumber}`;
+      ? `${window.location.origin}/${locale}/quote/${proposal.quoteNumber}`
+      : `https://mavelrise-decor.vercel.app/${locale}/quote/${proposal.quoteNumber}`;
 
     // Background persist
     fetch("/api/quote/save", {
@@ -236,14 +240,30 @@ export function PlankQuotePanel({
       }),
     }).catch(() => {});
 
-    let msg = `Hello MarvelRise Decor,\n\nI want to reserve my finishes quote:\n`;
-    msg += `• Quote Ref: ${proposal.quoteNumber}\n`;
-    msg += `• Total Rooms: ${rooms.length} (${proposal.metrics.totalGrossAreaSqm} m²)\n`;
-    msg += `• Primary Floor: ${spcColor.name} (${spcColor.code || "GJ6345-3"})\n`;
-    msg += `• Boxes Needed: ${proposal.metrics.totalBoxes} Boxes (incl. 10% wastage)\n`;
-    msg += `• Estimated Total: KES ${grandTotalKes.toLocaleString()}\n`;
-    msg += `• View Full Proposal: ${quoteUrl}\n\n`;
-    msg += `Please confirm stock and book my free on-site survey in Nairobi.`;
+    let msg = isSw
+      ? `Hujambo MarvelRise Decor,\n\nNingependa kuhifadhi makadirio yangu:\n`
+      : `Hello MarvelRise Decor,\n\nI want to reserve my finishes quote:\n`;
+    msg += isSw
+      ? `• Nambari ya Orodha: ${proposal.quoteNumber}\n`
+      : `• Quote Ref: ${proposal.quoteNumber}\n`;
+    msg += isSw
+      ? `• Jumla ya Vyumba: ${rooms.length} (${proposal.metrics.totalGrossAreaSqm} m²)\n`
+      : `• Total Rooms: ${rooms.length} (${proposal.metrics.totalGrossAreaSqm} m²)\n`;
+    msg += isSw
+      ? `• Sakafu Kuu: ${spcColor.name} (${spcColor.code || "GJ6345-3"})\n`
+      : `• Primary Floor: ${spcColor.name} (${spcColor.code || "GJ6345-3"})\n`;
+    msg += isSw
+      ? `• Masanduku Yanayohitajika: ${proposal.metrics.totalBoxes} Masanduku (pamoja na 10% ya ziada)\n`
+      : `• Boxes Needed: ${proposal.metrics.totalBoxes} Boxes (incl. 10% wastage)\n`;
+    msg += isSw
+      ? `• Jumla Inayokadiriwa: KSh ${grandTotalKes.toLocaleString()}\n`
+      : `• Estimated Total: KES ${grandTotalKes.toLocaleString()}\n`;
+    msg += isSw
+      ? `• Tazama Orodha Kamili: ${quoteUrl}\n\n`
+      : `• View Full Proposal: ${quoteUrl}\n\n`;
+    msg += isSw
+      ? `Tafadhali thibitisha upatikanaji wa bidhaa na upange ukaguzi wa eneo langu Nairobi.`
+      : `Please confirm stock and book my free on-site survey in Nairobi.`;
 
     const phone = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "254719113343";
     window.open(
@@ -256,14 +276,24 @@ export function PlankQuotePanel({
   const handleSendToFriend = () => {
     const proposal = calculateQuoteProposal(rooms, "supply_only", 10);
     const quoteUrl = typeof window !== "undefined"
-      ? `${window.location.origin}/en/quote/${proposal.quoteNumber}`
-      : `https://mavelrise-decor.vercel.app/en/quote/${proposal.quoteNumber}`;
+      ? `${window.location.origin}/${locale}/quote/${proposal.quoteNumber}`
+      : `https://mavelrise-decor.vercel.app/${locale}/quote/${proposal.quoteNumber}`;
 
-    let msg = `Hi, here is our interior finishes estimate from MarvelRise Decor:\n`;
-    msg += `• Quote No: ${proposal.quoteNumber}\n`;
-    msg += `• Area: ${proposal.metrics.totalGrossAreaSqm} m² (${proposal.metrics.totalBoxes} boxes)\n`;
-    msg += `• Total: KES ${grandTotalKes.toLocaleString()}\n`;
-    msg += `Check out the complete specification here: ${quoteUrl}`;
+    let msg = isSw
+      ? `Hujambo, haya hapa makadirio ya vifaa vya ndani kutoka MarvelRise Decor:\n`
+      : `Hi, here is our interior finishes estimate from MarvelRise Decor:\n`;
+    msg += isSw
+      ? `• Nambari ya Orodha: ${proposal.quoteNumber}\n`
+      : `• Quote No: ${proposal.quoteNumber}\n`;
+    msg += isSw
+      ? `• Eneo: ${proposal.metrics.totalGrossAreaSqm} m² (${proposal.metrics.totalBoxes} masanduku)\n`
+      : `• Area: ${proposal.metrics.totalGrossAreaSqm} m² (${proposal.metrics.totalBoxes} boxes)\n`;
+    msg += isSw
+      ? `• Jumla: KSh ${grandTotalKes.toLocaleString()}\n`
+      : `• Total: KES ${grandTotalKes.toLocaleString()}\n`;
+    msg += isSw
+      ? `Tazama maelezo yote ya vifaa hapa: ${quoteUrl}`
+      : `Check out the complete specification here: ${quoteUrl}`;
 
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   };
@@ -307,32 +337,32 @@ export function PlankQuotePanel({
       {/* Grand Total Highlight Monolith */}
       <div className="p-4 rounded-sm bg-gradient-to-br from-[#121c2e] to-[#070d18] border border-amber-400/30 shadow-xl space-y-1">
         <span className="text-[10px] font-mono uppercase tracking-widest text-amber-300/80">
-          Total Estimated Investment
+          {t(locale, "planner.quote.title")}
         </span>
         <div className="text-3xl font-serif text-white font-medium">
           KES {grandTotalKes.toLocaleString()}
         </div>
         <div className="text-[10px] font-mono text-white/40">
-          Based on 10% wastage allowance &amp; benchmark atelier rates
+          {isSw ? "Kulingana na 10% ya ziada & viwango vya atelier" : "Based on 10% wastage allowance & benchmark atelier rates"}
         </div>
       </div>
 
       {/* Key Metrics Pill Grid */}
       <div className="grid grid-cols-2 gap-2 text-xs font-mono">
         <div className="p-2.5 rounded-xs bg-black/40 border border-white/5">
-          <span className="text-white/40 block text-[9px] uppercase">Net Area</span>
+          <span className="text-white/40 block text-[9px] uppercase">{t(locale, "planner.quote.netArea")}</span>
           <span className="text-white font-medium">{quote.totalAreaSqm.toFixed(1)} m²</span>
         </div>
         <div className="p-2.5 rounded-xs bg-black/40 border border-white/5">
-          <span className="text-amber-300 block text-[9px] uppercase">Boxes (10% Waste)</span>
-          <span className="text-amber-300 font-medium">{quote.totalBoxes} Boxes</span>
+          <span className="text-amber-300 block text-[9px] uppercase">{t(locale, "planner.quote.boxes")}</span>
+          <span className="text-amber-300 font-medium">{quote.totalBoxes} {isSw ? "Masanduku" : "Boxes"}</span>
         </div>
       </div>
 
       {/* Selected Line Items Preview */}
       <div className="space-y-3">
         <span className="text-[10px] font-mono uppercase tracking-widest text-white/50 block">
-          Configured Finishing Specifications ({lineItems.length} lines)
+          {t(locale, "planner.quote.lineItems")} ({lineItems.length})
         </span>
 
         <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1 scrollbar-luxury">
@@ -376,7 +406,7 @@ export function PlankQuotePanel({
           ) : (
             <FileText className="w-4 h-4" />
           )}
-          <span>View &amp; Print Official Proposal (PDF)</span>
+          <span>{t(locale, "planner.quote.viewProposal")}</span>
           <ChevronRight className="w-3.5 h-3.5" />
         </button>
 
@@ -387,7 +417,7 @@ export function PlankQuotePanel({
           className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xs bg-amber-400 hover:bg-amber-300 text-black font-mono text-xs uppercase tracking-widest font-semibold transition-all shadow-xl shadow-amber-400/20"
         >
           <MessageCircle className="w-4 h-4" />
-          <span>Reserve this Quote on WhatsApp</span>
+          <span>{t(locale, "planner.quote.reserveWhatsApp")}</span>
         </button>
 
         {/* 3. Send to a Friend or Contractor */}
@@ -397,12 +427,12 @@ export function PlankQuotePanel({
           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xs border border-white/10 hover:border-white/30 text-white/70 hover:text-white text-xs font-mono uppercase tracking-wider transition-all"
         >
           <Send className="w-3.5 h-3.5 text-amber-400" />
-          <span>Send to a Friend or Contractor</span>
+          <span>{t(locale, "planner.quote.sendFriend")}</span>
         </button>
       </div>
 
       <p className="text-[10px] font-mono text-white/35 leading-relaxed">
-        *7-day price guarantee. Final quote confirmed during the MarvelRise site consultation in Nairobi.
+        *{t(locale, "planner.quote.guarantee")}
       </p>
     </div>
   );

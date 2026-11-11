@@ -16,6 +16,10 @@ export function ProductCard({ product, locale }: ProductCardProps) {
   const href = `/${locale}/collections/${product.category?.slug || "spc-flooring"}/${product.slug}`;
   const plannerHref = `/${locale}/planner?color=${encodeURIComponent(product.code)}`;
 
+  const displayName = locale === "sw" && product.name_sw ? product.name_sw : product.name;
+  const displayDesc = locale === "sw" && product.description_sw ? product.description_sw : product.description;
+  const displayCategory = locale === "sw" && product.category?.name_sw ? product.category.name_sw : (product.category?.name || "Architectural Finish");
+
   return (
     <article className="group relative flex flex-col bg-[#070e18]/80 border border-amber-500/15 rounded-sm overflow-hidden hover:border-amber-400/40 transition-all duration-500 hover:shadow-2xl hover:shadow-amber-500/5">
       {/* Top Banner: Code & Placeholder flag if applicable */}
@@ -86,15 +90,15 @@ export function ProductCard({ product, locale }: ProductCardProps) {
       <div className="p-5 flex-1 flex flex-col justify-between">
         <div>
           <div className="text-[11px] font-mono tracking-widest text-white/40 uppercase mb-1">
-            {product.category?.name || "Architectural Finish"}
+            {displayCategory}
           </div>
           <Link href={href} className="group-hover:text-amber-400 transition-colors">
             <h3 className="font-serif text-lg text-white font-medium tracking-tight mb-2">
-              {product.name}
+              {displayName}
             </h3>
           </Link>
           <p className="text-xs text-white/60 line-clamp-2 leading-relaxed mb-4">
-            {product.description}
+            {displayDesc}
           </p>
         </div>
 

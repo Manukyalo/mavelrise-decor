@@ -44,12 +44,17 @@ export function ProductDetailView({ product, locale }: ProductDetailViewProps) {
     setZoomCoords({ x, y });
   };
 
+  const displayName = locale === "sw" && product.name_sw ? product.name_sw : product.name;
+  const displayDesc = locale === "sw" && product.description_sw ? product.description_sw : product.description;
+  const displayCategory = locale === "sw" && product.category?.name_sw ? product.category.name_sw : (product.category?.name || "Architectural Finish");
+
   // WhatsApp prefilled message
   const whatsappPhone =
     process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "254719113343";
   const whatsappMessage = encodeURIComponent(
-    `Hello MarvelRise Decor, I am inquiring about the ${product.name} (Code: ${product.code})${selectedVariant ? ` in ${selectedVariant.label}` : ""
-    }. Could you provide availability and a quote for my project?`
+    locale === "sw"
+      ? `Hujambo MarvelRise Decor, ninaulizia kuhusu ${displayName} (Nambari ya Bidhaa: ${product.code})${selectedVariant ? ` yenye unene wa ${selectedVariant.label}` : ""}. Je, inapatikana na mnaweza kunipa makadirio ya bei ya mradi wangu?`
+      : `Hello MarvelRise Decor, I am inquiring about the ${product.name} (Code: ${product.code})${selectedVariant ? ` in ${selectedVariant.label}` : ""}. Could you provide availability and a quote for my project?`
   );
   const whatsappUrl = `https://wa.me/${whatsappPhone.replace(/[^0-9]/g, "")}?text=${whatsappMessage}`;
 
@@ -201,16 +206,16 @@ export function ProductDetailView({ product, locale }: ProductDetailViewProps) {
                 {product.code}
               </span>
               <span className="text-white/40 uppercase tracking-wider">
-                {product.category?.name}
+                {displayCategory}
               </span>
             </div>
 
             <h1 className="font-serif text-3xl sm:text-4xl text-white font-medium tracking-tight">
-              {product.name}
+              {displayName}
             </h1>
 
             <p className="text-xs sm:text-sm text-white/70 leading-relaxed">
-              {product.description}
+              {displayDesc}
             </p>
           </div>
 

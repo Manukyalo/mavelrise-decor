@@ -8,6 +8,12 @@ export const metadata: Metadata = {
     "Design your space: enter your room measurements, choose SPC flooring colours, and watch planks laid in real time. Get an instant box count for your quote.",
 };
 
-export default function PlannerPage() {
-  return <PlannerShell />;
+interface PlannerPageProps {
+  params: {
+    locale: string;
+  };
+}
+
+export default function PlannerPage({ params }: PlannerPageProps) {
+  return <PlannerShell locale={params.locale} />;
 }

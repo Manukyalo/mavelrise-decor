@@ -4,8 +4,11 @@ export interface Category {
   id: string;
   slug: string;
   name: string;
+  name_sw?: string | null;
   tagline: string | null;
+  tagline_sw?: string | null;
   description: string | null;
+  description_sw?: string | null;
   cover_image_url: string | null;
   sort_order: number;
   active: boolean;
@@ -52,6 +55,7 @@ export interface Product {
   code: string;
   slug: string;
   name: string;
+  name_sw?: string | null;
   category_id: string;
   thickness: string | null;
   size: string | null;
@@ -63,6 +67,7 @@ export interface Product {
   images: string[];
   texture_url: string | null;
   description: string | null;
+  description_sw?: string | null;
   specs: ProductSpecs;
   variants: ProductVariant[];
   is_placeholder: boolean;

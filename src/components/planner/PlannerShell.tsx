@@ -43,6 +43,7 @@ import { RoomSetupPanel } from "./RoomSetupPanel";
 import { SpcColorPicker } from "./SpcColorPicker";
 import { MixedProductControls } from "./MixedProductControls";
 import { PlankQuotePanel } from "./PlankQuotePanel";
+import { t } from "@/lib/i18n/client";
 import { ColorCompareSlider } from "./ColorCompareSlider";
 import { IsometricHouseCanvas, type IsometricCanvasRef } from "./IsometricHouseCanvas";
 import { TEMPLATES } from "@/lib/planner/templates";
@@ -61,7 +62,7 @@ function detectQualityTier(): QualityTier {
   return "low";
 }
 
-export function PlannerShell() {
+export function PlannerShell({ locale = "en" }: { locale?: string } = {}) {
   // ── Step 1 (Setup Measurements) vs Step 2 (3D Design & Finishing) ─────────
   const [step, setStep] = useState<PlannerStep>("setup");
 
@@ -272,12 +273,12 @@ export function PlannerShell() {
 
   // ── Sidebar tabs config ──────────────────────────────────────────────────
   const sidebarTabs: Array<{ id: PlannerTab; icon: React.ReactNode; label: string }> = [
-    { id: "colours", icon: <Layers className="w-3.5 h-3.5" />, label: "Floor" },
-    { id: "walls", icon: <Building className="w-3.5 h-3.5" />, label: "Walls" },
-    { id: "lighting", icon: <Lightbulb className="w-3.5 h-3.5" />, label: "Lights" },
-    { id: "decor", icon: <Sparkles className="w-3.5 h-3.5" />, label: "Decor" },
-    { id: "pairing", icon: <Wand2 className="w-3.5 h-3.5" />, label: "Curated" },
-    { id: "quote", icon: <Calculator className="w-3.5 h-3.5" />, label: "Quote" },
+    { id: "colours", icon: <Layers className="w-3.5 h-3.5" />, label: t(locale, "planner.sidebar.floor") },
+    { id: "walls", icon: <Building className="w-3.5 h-3.5" />, label: t(locale, "planner.sidebar.walls") },
+    { id: "lighting", icon: <Lightbulb className="w-3.5 h-3.5" />, label: t(locale, "planner.sidebar.lights") },
+    { id: "decor", icon: <Sparkles className="w-3.5 h-3.5" />, label: t(locale, "planner.sidebar.decor") },
+    { id: "pairing", icon: <Wand2 className="w-3.5 h-3.5" />, label: t(locale, "planner.sidebar.curated") },
+    { id: "quote", icon: <Calculator className="w-3.5 h-3.5" />, label: t(locale, "planner.sidebar.quote") },
   ];
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -338,7 +339,7 @@ export function PlannerShell() {
             onClick={() => setStep("setup")}
             className="text-[11px] font-mono text-brand-gold hover:text-brand-gold-light uppercase tracking-wider transition-colors flex items-center gap-1.5 font-semibold bg-brand-navy px-2.5 py-1 rounded-xs border border-brand-gold/25 cursor-pointer"
           >
-            <span>← Edit Measurements &amp; Layout</span>
+            <span>← {t(locale, "planner.controls.editRooms")}</span>
           </button>
 
           {/* Quick House Template Switcher in 3D Mode */}
@@ -605,7 +606,8 @@ export function PlannerShell() {
                 shareCode={shareCode}
                 onShare={handleShare}
                 onWhatsApp={handleWhatsApp}
-                whatsAppPhone={process.env.NEXT_PUBLIC_WHATSAPP_PHONE ?? "254712345678"}
+                whatsAppPhone={process.env.NEXT_PUBLIC_WHATSAPP_PHONE ?? "254719113343"}
+                locale={locale}
               />
             )}
 

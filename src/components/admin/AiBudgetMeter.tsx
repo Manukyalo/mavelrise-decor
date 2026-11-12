@@ -91,20 +91,18 @@ export function AiBudgetMeter({ initialBudget, initialLogs }: AiBudgetMeterProps
       <div className="p-4 sm:p-5 rounded-xl bg-admin-surface border border-admin-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center gap-3.5">
           <div
-            className={`w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 ${
-              budget.is_enabled
+            className={`w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 ${budget.is_enabled
                 ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
                 : "border-red-500/30 bg-red-500/10 text-red-400"
-            }`}
+              }`}
           >
             <Cpu className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <span
-                className={`w-2 h-2 rounded-full ${
-                  budget.is_enabled ? "bg-emerald-400 animate-pulse" : "bg-red-400"
-                }`}
+                className={`w-2 h-2 rounded-full ${budget.is_enabled ? "bg-emerald-400 animate-pulse" : "bg-red-400"
+                  }`}
               />
               <span className="text-xs font-mono font-semibold text-admin-text tracking-wide uppercase">
                 AI Assistant Status: {budget.is_enabled ? "Active & Guarded" : "Offline (Killswitch Engaged)"}
@@ -118,11 +116,10 @@ export function AiBudgetMeter({ initialBudget, initialLogs }: AiBudgetMeterProps
 
         <button
           onClick={handleToggle}
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-sans font-semibold transition-all shadow-sm ${
-            budget.is_enabled
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-sans font-semibold transition-all shadow-sm ${budget.is_enabled
               ? "bg-red-500/15 hover:bg-red-500/25 border border-red-500/40 text-red-300"
               : "bg-emerald-600 hover:bg-emerald-500 text-white"
-          }`}
+            }`}
         >
           <Power className="w-4 h-4" />
           <span>{budget.is_enabled ? "Emergency Kill Switch" : "Enable AI Concierge"}</span>
@@ -190,13 +187,12 @@ export function AiBudgetMeter({ initialBudget, initialLogs }: AiBudgetMeterProps
         <div className="space-y-2">
           <div className="h-3 w-full bg-admin-surface-raised rounded-full overflow-hidden p-0.5 border border-admin-border">
             <div
-              className={`h-full rounded-full transition-all duration-700 ease-out ${
-                percentage >= 90
+              className={`h-full rounded-full transition-all duration-700 ease-out ${percentage >= 90
                   ? "bg-red-500 shadow-lg shadow-red-500/50"
                   : percentage >= 70
-                  ? "bg-amber-500 shadow-lg shadow-amber-500/50"
-                  : "bg-admin-gold shadow-lg shadow-admin-gold/30"
-              }`}
+                    ? "bg-amber-500 shadow-lg shadow-amber-500/50"
+                    : "bg-admin-gold shadow-lg shadow-admin-gold/30"
+                }`}
               style={{ width: `${Math.max(percentage, 2)}%` }}
             />
           </div>
@@ -216,11 +212,10 @@ export function AiBudgetMeter({ initialBudget, initialLogs }: AiBudgetMeterProps
         {/* Safeguard Alert Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-2">
           <div
-            className={`p-4 rounded-xl border transition-colors ${
-              percentage >= 70
+            className={`p-4 rounded-xl border transition-colors ${percentage >= 70
                 ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
                 : "bg-admin-surface-raised/40 border-admin-border text-admin-text-muted"
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2 mb-1.5">
               {percentage >= 70 ? (
@@ -238,11 +233,10 @@ export function AiBudgetMeter({ initialBudget, initialLogs }: AiBudgetMeterProps
           </div>
 
           <div
-            className={`p-4 rounded-xl border transition-colors ${
-              percentage >= 90
+            className={`p-4 rounded-xl border transition-colors ${percentage >= 90
                 ? "bg-red-500/10 border-red-500/30 text-red-300"
                 : "bg-admin-surface-raised/40 border-admin-border text-admin-text-muted"
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2 mb-1.5">
               {percentage >= 90 ? (
@@ -260,11 +254,10 @@ export function AiBudgetMeter({ initialBudget, initialLogs }: AiBudgetMeterProps
           </div>
 
           <div
-            className={`p-4 rounded-xl border transition-colors ${
-              percentage >= 100
+            className={`p-4 rounded-xl border transition-colors ${percentage >= 100
                 ? "bg-red-500/20 border-red-500 text-red-200"
                 : "bg-admin-surface-raised/40 border-admin-border text-admin-text-muted"
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2 mb-1.5">
               <Lock className="w-4 h-4 text-admin-gold" />

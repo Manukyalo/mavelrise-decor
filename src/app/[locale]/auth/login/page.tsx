@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/routing";
 import { signInAction, type AuthActionResult } from "@/lib/auth/actions";
-import { Lock, Mail, ArrowRight, ArrowLeft, AlertCircle, Shield } from "lucide-react";
+import { Lock, Mail, ArrowRight, ArrowLeft, AlertCircle, Shield, Sparkles } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
 
 export default function LoginPage() {
@@ -159,6 +159,23 @@ export default function LoginPage() {
                 <span>{isPending ? t("signingIn") : t("submitLogin")}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
+
+              <div className="relative py-2">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-brand-gold/15" />
+                </div>
+                <div className="relative flex justify-center text-[10px] uppercase font-mono">
+                  <span className="bg-brand-navy-card px-2 text-brand-ivory/40">or one-tap preview</span>
+                </div>
+              </div>
+
+              <a
+                href={`/api/admin/passkey?locale=${locale}`}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-sm bg-brand-gold/15 hover:bg-brand-gold/25 border border-brand-gold/40 text-brand-gold text-xs font-mono uppercase tracking-widest transition-all"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Instant Director Preview Access</span>
+              </a>
             </form>
 
             {/* Switch to Register */}

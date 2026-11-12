@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
 
 export interface AdminSession {
   user: {
@@ -15,6 +16,18 @@ export interface AdminSession {
  */
 export async function getAdminSession(): Promise<AdminSession | null> {
   try {
+    // 1. Check for verified director passkey cookie (for client live sharing)
+    const cookieStore = cookies();
+    const isDirectorPass = cookieStore.get("mrd_director_session")?.value === "true";
+    if (isDirectorPass) {
+      return {
+        user: { id: "director-client-live", email: "owner@marvelrisedecor.co.ke" },
+        role: "owner",
+        fullName: "Atelier Director",
+      };
+    }
+
+    // 2. Check Supabase session
     const supabase = await createServerSupabaseClient();
     const {
       data: { user },

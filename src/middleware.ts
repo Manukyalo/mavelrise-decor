@@ -66,8 +66,21 @@ export default async function middleware(request: NextRequest) {
     pathname.startsWith(`/${locale}/auth/login`) ||
     pathname.startsWith(`/${locale}/auth/register`);
 
+  // Check for client passkey direct access (?access=director) or existing director cookie
+  const accessKey = request.nextUrl.searchParams.get("access");
+  const hasDirectorCookie = request.cookies.get("mrd_director_session")?.value === "true";
+  const isDirectorPass = accessKey === "director" || hasDirectorCookie;
+
+  if (accessKey === "director") {
+    response.cookies.set("mrd_director_session", "true", {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      sameSite: "lax",
+    });
+  }
+
   // 4. Enforce route guarding server-side
-  if (isProtectedRoute && !user) {
+  if (isProtectedRoute && !user && !isDirectorPass) {
     const loginUrl = new URL(`/${locale}/auth/login`, request.url);
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);

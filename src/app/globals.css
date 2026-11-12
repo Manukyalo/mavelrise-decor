@@ -118,3 +118,16 @@ html.lenis, html.lenis body {
   scrollbar-width: thin;
   scrollbar-color: rgba(200, 161, 90, 0.3) transparent;
 }
+
+/* Accessibility & Performance: Respect user preferences for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+

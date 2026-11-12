@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { computeLeadScore } from "@/lib/admin/scoring";
 
 const SaveQuoteSchema = z.object({
   quoteNumber: z.string().min(5),
@@ -46,6 +47,72 @@ export async function POST(req: Request) {
       );
     }
 
+    // Automatically synchronize with Leads Pipeline
+    try {
+      const rooms = Array.isArray(quoteData.rooms) ? quoteData.rooms : [];
+      const totalAreaSqm = rooms.reduce(
+        (sum: number, r: { dimensions?: { areaSqm?: number }; areaSqm?: number }) =>
+          sum + (r.dimensions?.areaSqm || r.areaSqm || 0),
+        0
+      );
+
+      const productsList: { code: string; name: string; category?: string }[] = [];
+      rooms.forEach((r: { spcProduct?: { code: string; name: string }; wpcProduct?: { code: string; name: string }; lampProduct?: { code: string; name: string } }) => {
+        if (r.spcProduct?.code) productsList.push({ ...r.spcProduct, category: "spc-flooring" });
+        if (r.wpcProduct?.code) productsList.push({ ...r.wpcProduct, category: "wpc-wall-panels" });
+        if (r.lampProduct?.code) productsList.push({ ...r.lampProduct, category: "lampshades" });
+      });
+
+      const scoreResult = computeLeadScore({
+        status: "quote_created",
+        total_kes: totalKes,
+        total_area_sqm: totalAreaSqm,
+        products: productsList,
+        visit_count: 1,
+        whatsapp_clicked: false,
+      });
+
+      // Find existing lead by quote_ref if any
+      const { data: existingLead } = await supabase
+        .from("leads")
+        .select("id")
+        .eq("quote_ref", quoteNumber)
+        .maybeSingle();
+
+      if (existingLead) {
+        await supabase
+          .from("leads")
+          .update({
+            source: "planner",
+            status: "quote_created",
+            total_kes: totalKes,
+            total_area_sqm: totalAreaSqm,
+            room_count: rooms.length || 1,
+            products: productsList,
+            score: scoreResult.score,
+            score_reasons: scoreResult.reasons,
+            score_tag: scoreResult.tag,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existingLead.id);
+      } else {
+        await supabase.from("leads").insert({
+          quote_ref: quoteNumber,
+          source: "planner",
+          status: "quote_created",
+          total_kes: totalKes,
+          total_area_sqm: totalAreaSqm,
+          room_count: rooms.length || 1,
+          products: productsList,
+          score: scoreResult.score,
+          score_reasons: scoreResult.reasons,
+          score_tag: scoreResult.tag,
+        });
+      }
+    } catch (leadSyncErr) {
+      console.error("[api/quote/save] Non-blocking lead sync error:", leadSyncErr);
+    }
+
     return NextResponse.json(
       { success: true, quoteNumber: data.quote_number },
       { status: 200 }
@@ -58,4 +125,3 @@ export async function POST(req: Request) {
     );
   }
 }
-

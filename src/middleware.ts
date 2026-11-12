@@ -57,7 +57,11 @@ export default async function middleware(request: NextRequest) {
 
   // Defined protected and auth routes
   const isProtectedRoute =
-    pathname.startsWith(`/${locale}/portal`) || pathname.startsWith(`/portal`);
+    pathname.startsWith(`/${locale}/portal`) ||
+    pathname.startsWith(`/portal`) ||
+    pathname.startsWith(`/${locale}/admin`) ||
+    pathname.startsWith(`/admin`);
+
   const isAuthRoute =
     pathname.startsWith(`/${locale}/auth/login`) ||
     pathname.startsWith(`/${locale}/auth/register`);
@@ -70,7 +74,9 @@ export default async function middleware(request: NextRequest) {
   }
 
   if (isAuthRoute && user) {
-    return NextResponse.redirect(new URL(`/${locale}/portal`, request.url));
+    const nextParam = request.nextUrl.searchParams.get("next");
+    const targetUrl = nextParam || `/${locale}/admin`;
+    return NextResponse.redirect(new URL(targetUrl, request.url));
   }
 
   return response;

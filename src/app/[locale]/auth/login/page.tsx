@@ -17,6 +17,13 @@ export default function LoginPage() {
 
   const [state, formAction] = React.useState<AuthActionResult | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [emailInput, setEmailInput] = React.useState("");
+  const [passwordInput, setPasswordInput] = React.useState("");
+
+  const fillDemoCredentials = () => {
+    setEmailInput("owner@marvelrisedecor.co.ke");
+    setPasswordInput("Atelier2026!");
+  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -91,6 +98,8 @@ export default function LoginPage() {
                     type="email"
                     name="email"
                     required
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
                     placeholder="architect@domain.com"
                     className="w-full pl-10 pr-4 py-2.5 rounded-sm bg-brand-navy border border-brand-gold/25 focus:border-brand-gold text-brand-ivory text-xs font-mono placeholder:text-brand-ivory/30 focus:outline-none transition-colors"
                   />
@@ -117,6 +126,8 @@ export default function LoginPage() {
                     type="password"
                     name="password"
                     required
+                    value={passwordInput}
+                    onChange={(e) => setPasswordInput(e.target.value)}
                     placeholder="••••••••"
                     className="w-full pl-10 pr-4 py-2.5 rounded-sm bg-brand-navy border border-brand-gold/25 focus:border-brand-gold text-brand-ivory text-xs font-mono placeholder:text-brand-ivory/30 focus:outline-none transition-colors"
                   />
@@ -126,6 +137,18 @@ export default function LoginPage() {
                     {state.fieldErrors.password[0]}
                   </p>
                 )}
+              </div>
+
+              {/* Quick Fill Demo Credentials */}
+              <div className="flex items-center justify-between text-[11px] font-mono">
+                <button
+                  type="button"
+                  onClick={fillDemoCredentials}
+                  className="text-brand-gold/80 hover:text-brand-gold uppercase tracking-wider underline decoration-brand-gold/30 hover:decoration-brand-gold transition-colors"
+                >
+                  Fill Atelier Director Access
+                </button>
+                <span className="text-brand-ivory/40">Owner Role</span>
               </div>
 
               <button

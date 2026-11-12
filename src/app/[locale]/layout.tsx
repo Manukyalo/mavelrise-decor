@@ -10,6 +10,7 @@ import { Footer } from "@/components/layout/Footer";
 import { StickyWhatsApp } from "@/components/layout/StickyWhatsApp";
 import { PageTransition } from "@/components/motion/PageTransition";
 import { CustomCursor } from "@/components/ui/CustomCursor";
+import { LocalBusinessJsonLd } from "@/components/seo/LocalBusinessJsonLd";
 import "../globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -27,17 +28,38 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "MarvelRise Decor | Architectural Finishes & Bespoke Ceilings",
+  metadataBase: new URL("https://mavelrise-decor.vercel.app"),
+  title: "MarvelRise Decor | Architectural Finishes, SPC Flooring & Wall Panels",
   description:
-    "East Africa's premier interior architectural craftsmanship studio. Acoustic gypsum ceilings, fluted wall panelling, ambient architectural illumination and bespoke spatial joinery in Nairobi.",
+    "East Africa's premier interior architectural craftsmanship studio based in Ruiru Membley. 100% waterproof SPC flooring (5.5mm & 6mm), acoustic fluted WPC wall panels, UV marble sheets and bespoke ambient illumination in Nairobi & Kiambu.",
   keywords: [
     "MarvelRise Decor",
+    "SPC flooring Kenya",
+    "SPC flooring Ruiru",
+    "Waterproof flooring Nairobi",
+    "WPC wall panels Kenya",
+    "UV marble sheets Nairobi",
     "Gypsum ceiling Nairobi",
-    "Architectural finishes Kenya",
+    "Architectural finishes Kiambu",
     "Acoustic wall panels",
     "Luxury interior design East Africa",
-    "Bespoke joinery Nairobi",
   ],
+  alternates: {
+    canonical: "/",
+    languages: {
+      en: "/en",
+      sw: "/sw",
+    },
+  },
+  openGraph: {
+    title: "MarvelRise Decor | Architectural Finishes & 3D Room Visualizer",
+    description:
+      "Explore 100% waterproof SPC rigid-core flooring and fluted wall panelling in our interactive 3D room planner. Instant KSh quotes and showroom in Ruiru Membley.",
+    url: "https://mavelrise-decor.vercel.app",
+    siteName: "MarvelRise Decor",
+    locale: "en_KE",
+    type: "website",
+  },
 };
 
 export default async function LocaleLayout({
@@ -56,6 +78,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} className={`${cormorant.variable} ${plusJakarta.variable}`}>
       <body className="bg-brand-navy text-brand-ivory antialiased selection:bg-brand-gold selection:text-brand-navy">
+        <LocalBusinessJsonLd />
         <NextIntlClientProvider locale={locale} messages={messages}>
           <SmoothScrollProvider>
             {/* Custom Interactive Desktop Cursor */}

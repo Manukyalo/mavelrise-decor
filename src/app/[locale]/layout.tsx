@@ -1,15 +1,7 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
+import { Cormorant_Garamond, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
-import { headers } from "next/headers";
-import { SmoothScrollProvider } from "@/components/motion/SmoothScrollProvider";
-import { BrandedLoader } from "@/components/motion/BrandedLoader";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { StickyWhatsApp } from "@/components/layout/StickyWhatsApp";
-import { PageTransition } from "@/components/motion/PageTransition";
-import { CustomCursor } from "@/components/ui/CustomCursor";
 import { LocalBusinessJsonLd } from "@/components/seo/LocalBusinessJsonLd";
 import "../globals.css";
 
@@ -25,6 +17,13 @@ const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
   display: "swap",
   weight: ["300", "400", "500", "600", "700"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
+  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
@@ -70,40 +69,18 @@ export default async function LocaleLayout({
   params: { locale: string };
 }) {
   const messages = await getMessages();
-  // Suppress footer and smooth-scroll on the planner route — it's a full-viewport app
-  const headersList = headers();
-  const pathname = headersList.get("x-pathname") ?? headersList.get("x-next-intl-pathname") ?? "";
-  const isPlanner = pathname.includes("/planner");
 
   return (
-    <html lang={locale} className={`${cormorant.variable} ${plusJakarta.variable}`}>
-      <body className="bg-brand-navy text-brand-ivory antialiased selection:bg-brand-gold selection:text-brand-navy">
+    <html
+      lang={locale}
+      className={`${cormorant.variable} ${plusJakarta.variable} ${jetbrainsMono.variable}`}
+    >
+      <body className="bg-brand-navy text-brand-ivory antialiased selection:bg-brand-gold selection:text-brand-navy min-h-screen">
         <LocalBusinessJsonLd />
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <SmoothScrollProvider>
-            {/* Custom Interactive Desktop Cursor */}
-            <CustomCursor />
-
-            {/* Branded Loader with MRD Animated Mark */}
-            <BrandedLoader />
-
-            {/* Navigation Header */}
-            <Header />
-
-            {/* Page Route Transitions */}
-            <main className="min-h-screen">
-              <PageTransition>{children}</PageTransition>
-            </main>
-
-            {/* Sticky Showroom WhatsApp Concierge */}
-            <StickyWhatsApp />
-
-            {/* Showroom Footer — hidden on planner (full-viewport app page) */}
-            {!isPlanner && <Footer />}
-          </SmoothScrollProvider>
+          {children}
         </NextIntlClientProvider>
       </body>
     </html>
   );
 }
-

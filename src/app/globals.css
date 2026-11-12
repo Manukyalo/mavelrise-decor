@@ -7,6 +7,28 @@
     --font-cormorant: "Cormorant Garamond", "Didot", "Bodoni MT", "Cinzel", Georgia, serif;
     --font-plus-jakarta: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --font-mono: "JetBrains Mono", Menlo, Consolas, Monaco, monospace;
+
+    /* Admin Design System Tokens (Luxury Atelier Dark Theme) */
+    --admin-bg: #070e1b;
+    --admin-surface: #0c182b;
+    --admin-surface-raised: #12223c;
+    --admin-surface-hover: #172c4d;
+    --admin-border: rgba(255, 255, 255, 0.08);
+    --admin-border-subtle: rgba(255, 255, 255, 0.05);
+    --admin-border-gold: rgba(200, 161, 90, 0.3);
+    --admin-text: #f6f1e7;
+    --admin-text-muted: #8e9fb5;
+    --admin-gold: #c8a15a;
+    --admin-gold-hover: #d8b26e;
+    --admin-gold-muted: rgba(200, 161, 90, 0.15);
+    --admin-success: #10b981;
+    --admin-success-surface: rgba(16, 185, 129, 0.12);
+    --admin-warning: #f59e0b;
+    --admin-warning-surface: rgba(245, 158, 11, 0.12);
+    --admin-danger: #ef4444;
+    --admin-danger-surface: rgba(239, 68, 68, 0.12);
+    --admin-info: #38bdf8;
+    --admin-info-surface: rgba(56, 189, 248, 0.12);
   }
 
   html {

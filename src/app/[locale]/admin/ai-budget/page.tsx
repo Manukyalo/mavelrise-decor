@@ -48,12 +48,15 @@ export default async function AdminAiBudgetPage() {
   return (
     <div className="space-y-6">
       <div>
-        <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-brand-gold">
-          Cost Guard & Quotas
+        <span className="text-xs font-mono font-medium tracking-wider text-admin-gold uppercase">
+          Cost Governance & Safety Limits
         </span>
-        <h1 className="font-display text-3xl uppercase tracking-wider text-brand-ivory font-light mt-1">
-          AI Token Guard & Monthly Budget
+        <h1 className="font-serif text-2xl sm:text-3xl font-light text-admin-text tracking-tight mt-1">
+          AI Token Guard & Budget
         </h1>
+        <p className="text-xs sm:text-sm text-admin-text-muted font-sans mt-1">
+          Live token telemetry, monthly spend caps in KSh, and automated fail-safe redirection to WhatsApp.
+        </p>
       </div>
 
       <AiBudgetMeter
@@ -63,4 +66,3 @@ export default async function AdminAiBudgetPage() {
     </div>
   );
 }
-

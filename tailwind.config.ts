@@ -23,6 +23,28 @@ const config: Config = {
     },
     extend: {
       colors: {
+        admin: {
+          bg: "var(--admin-bg)",
+          surface: "var(--admin-surface)",
+          "surface-raised": "var(--admin-surface-raised)",
+          "surface-hover": "var(--admin-surface-hover)",
+          border: "var(--admin-border)",
+          "border-subtle": "var(--admin-border-subtle)",
+          "border-gold": "var(--admin-border-gold)",
+          text: "var(--admin-text)",
+          "text-muted": "var(--admin-text-muted)",
+          gold: "var(--admin-gold)",
+          "gold-hover": "var(--admin-gold-hover)",
+          "gold-muted": "var(--admin-gold-muted)",
+          success: "var(--admin-success)",
+          "success-surface": "var(--admin-success-surface)",
+          warning: "var(--admin-warning)",
+          "warning-surface": "var(--admin-warning-surface)",
+          danger: "var(--admin-danger)",
+          "danger-surface": "var(--admin-danger-surface)",
+          info: "var(--admin-info)",
+          "info-surface": "var(--admin-info-surface)",
+        },
         brand: {
           // =========================================================================
           // LUXURY IDENTITY TOKENS (Navy & Champagne Gold System)

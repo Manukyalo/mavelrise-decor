@@ -37,6 +37,11 @@ export function Header() {
     { label: t("contact"), href: "/#room-planner" },
   ];
 
+  // Absolute guarantee: never render marketing header inside admin portal
+  if (pathname?.includes("/admin")) {
+    return null;
+  }
+
   return (
     <>
       <header

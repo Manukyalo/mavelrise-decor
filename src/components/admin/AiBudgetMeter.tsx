@@ -6,13 +6,15 @@ import {
   Cpu,
   ShieldAlert,
   Power,
-  Sliders,
-  DollarSign,
+  Coins,
   Activity,
   CheckCircle2,
   AlertTriangle,
   Lock,
+  Layers,
+  ArrowRight,
 } from "lucide-react";
+import { StatCard } from "@/components/admin/StatCard";
 
 interface AiUsageItem {
   id: string;
@@ -83,25 +85,19 @@ export function AiBudgetMeter({ initialBudget, initialLogs }: AiBudgetMeterProps
     }
   };
 
-  const getMeterColor = (pct: number) => {
-    if (pct >= 90) return "bg-red-500 text-red-400";
-    if (pct >= 70) return "bg-amber-500 text-amber-400";
-    return "bg-brand-gold text-brand-gold";
-  };
-
   return (
-    <div className="space-y-8">
-      {/* Top Banner: Master Kill Switch & Status */}
-      <div className="p-6 rounded-sm bg-brand-navy-card border border-brand-gold/20 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+    <div className="space-y-6">
+      {/* Master Switch Banner */}
+      <div className="p-4 sm:p-5 rounded-xl bg-admin-surface border border-admin-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+        <div className="flex items-center gap-3.5">
           <div
-            className={`w-12 h-12 rounded-sm border flex items-center justify-center ${
+            className={`w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 ${
               budget.is_enabled
-                ? "border-emerald-500/40 bg-emerald-950/40 text-emerald-400"
-                : "border-red-500/40 bg-red-950/40 text-red-400"
+                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                : "border-red-500/30 bg-red-500/10 text-red-400"
             }`}
           >
-            <Cpu className="w-6 h-6" />
+            <Cpu className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -110,203 +106,236 @@ export function AiBudgetMeter({ initialBudget, initialLogs }: AiBudgetMeterProps
                   budget.is_enabled ? "bg-emerald-400 animate-pulse" : "bg-red-400"
                 }`}
               />
-              <span className="text-xs font-mono uppercase tracking-wider text-brand-ivory font-semibold">
-                AI Design Assistant: {budget.is_enabled ? "ACTIVE & GUARDED" : "OFFLINE (HARD STOP)"}
+              <span className="text-xs font-mono font-semibold text-admin-text tracking-wide uppercase">
+                AI Assistant Status: {budget.is_enabled ? "Active & Guarded" : "Offline (Killswitch Engaged)"}
               </span>
             </div>
-            <p className="text-xs font-sans text-brand-ivory/60 mt-0.5">
-              Strict monthly spend ceiling protects the showroom against surprise API bills.
+            <p className="text-xs text-admin-text-muted font-sans mt-0.5">
+              Strict monthly budget ceiling prevents unexpected API charges for the studio.
             </p>
           </div>
         </div>
 
-        {/* Master Toggle */}
         <button
           onClick={handleToggle}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-sm text-xs font-mono uppercase tracking-wider font-bold transition-all ${
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-sans font-semibold transition-all shadow-sm ${
             budget.is_enabled
-              ? "bg-red-950/50 hover:bg-red-900/60 border border-red-500/50 text-red-300"
+              ? "bg-red-500/15 hover:bg-red-500/25 border border-red-500/40 text-red-300"
               : "bg-emerald-600 hover:bg-emerald-500 text-white"
           }`}
         >
           <Power className="w-4 h-4" />
-          <span>{budget.is_enabled ? "Emergency Shut Off" : "Enable AI Concierge"}</span>
+          <span>{budget.is_enabled ? "Emergency Kill Switch" : "Enable AI Concierge"}</span>
         </button>
       </div>
 
+      {/* KPI Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <StatCard
+          icon={Coins}
+          label="Monthly Cap"
+          value={`KSh ${budget.budget_kes.toLocaleString()}`}
+          subtext={`Cycle: ${budget.month}`}
+          variant="gold"
+        />
+        <StatCard
+          icon={Activity}
+          label="KSh Spent"
+          value={`KSh ${spentKes.toFixed(2)}`}
+          subtext={`${percentage}% of monthly budget`}
+          variant={percentage >= 90 ? "amber" : "default"}
+        />
+        <StatCard
+          icon={Layers}
+          label="Total Tokens"
+          value={(budget.tokens_used || 0).toLocaleString()}
+          subtext="Model: Gemini 1.5 Flash"
+          variant="default"
+        />
+        <StatCard
+          icon={ShieldAlert}
+          label="Per-Visitor Limit"
+          value={`${(budget.per_visitor_limit || 5000).toLocaleString()}`}
+          subtext="Tokens max per IP / session"
+          variant="emerald"
+        />
+      </div>
+
       {/* Usage Meter Card */}
-      <div className="p-8 rounded-sm bg-brand-navy-card border border-brand-gold/20 space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="p-5 sm:p-6 rounded-xl bg-admin-surface border border-admin-border space-y-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
-            <span className="text-[10px] font-mono text-brand-gold uppercase tracking-[0.2em] block">
-              Billing Cycle: {budget.month}
+            <span className="text-xs font-mono text-admin-gold uppercase tracking-wider block">
+              Billing Month: {budget.month}
             </span>
-            <h3 className="font-display text-2xl text-brand-ivory font-light mt-0.5">
-              Monthly KSh Spend Allocation
+            <h3 className="font-serif text-xl sm:text-2xl text-admin-text font-light tracking-tight mt-0.5">
+              Real-time Budget Consumption
             </h3>
           </div>
 
-          <div className="text-right">
-            <span className="text-xs font-mono text-brand-ivory/60 block">
-              Current Spend / Ceiling
+          <div className="sm:text-right font-mono">
+            <span className="text-xs text-admin-text-muted block">
+              Consumed / Ceiling
             </span>
-            <span className="font-mono text-xl text-brand-gold font-bold">
+            <span className="text-lg sm:text-xl text-admin-gold font-bold tabular-nums">
               KSh {spentKes.toFixed(2)}{" "}
-              <span className="text-brand-ivory/40 text-sm">
+              <span className="text-admin-text-muted/60 text-xs font-normal">
                 / KSh {budget.budget_kes.toLocaleString()}
               </span>
             </span>
           </div>
         </div>
 
-        {/* Visual Progress Bar */}
+        {/* Progress Bar */}
         <div className="space-y-2">
-          <div className="h-4 w-full bg-brand-navy rounded-full overflow-hidden p-0.5 border border-brand-gold/20">
+          <div className="h-3 w-full bg-admin-surface-raised rounded-full overflow-hidden p-0.5 border border-admin-border">
             <div
-              className={`h-full rounded-full transition-all duration-500 ${
+              className={`h-full rounded-full transition-all duration-700 ease-out ${
                 percentage >= 90
                   ? "bg-red-500 shadow-lg shadow-red-500/50"
                   : percentage >= 70
                   ? "bg-amber-500 shadow-lg shadow-amber-500/50"
-                  : "bg-brand-gold shadow-lg shadow-brand-gold/50"
+                  : "bg-admin-gold shadow-lg shadow-admin-gold/30"
               }`}
-              style={{ width: `${percentage}%` }}
+              style={{ width: `${Math.max(percentage, 2)}%` }}
             />
           </div>
 
-          <div className="flex items-center justify-between text-[11px] font-mono text-brand-ivory/60">
+          <div className="flex items-center justify-between text-xs font-mono text-admin-text-muted">
             <span>0%</span>
             <span className={percentage >= 70 ? "text-amber-400 font-bold" : ""}>
-              70% Alert
+              70% Threshold Alert
             </span>
             <span className={percentage >= 90 ? "text-red-400 font-bold" : ""}>
-              90% Alert
+              90% Warning
             </span>
-            <span className="text-brand-gold font-bold">{percentage}% Consumed</span>
+            <span className="text-admin-gold font-bold tabular-nums">{percentage}% Consumed</span>
           </div>
         </div>
 
-        {/* Milestone Threshold Alerts */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-brand-gold/10">
+        {/* Safeguard Alert Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-2">
           <div
-            className={`p-4 rounded-sm border ${
+            className={`p-4 rounded-xl border transition-colors ${
               percentage >= 70
-                ? "bg-amber-950/30 border-amber-500/40 text-amber-300"
-                : "bg-brand-navy/40 border-brand-gold/15 text-brand-ivory/60"
+                ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
+                : "bg-admin-surface-raised/40 border-admin-border text-admin-text-muted"
             }`}
           >
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1.5">
               {percentage >= 70 ? (
                 <AlertTriangle className="w-4 h-4 text-amber-400" />
               ) : (
-                <CheckCircle2 className="w-4 h-4 text-brand-gold/50" />
+                <CheckCircle2 className="w-4 h-4 text-admin-gold/50" />
               )}
-              <span className="text-xs font-mono uppercase tracking-wider font-semibold">
+              <span className="text-xs font-sans font-semibold text-admin-text uppercase tracking-wider">
                 70% Pre-alert
               </span>
             </div>
-            <p className="text-[11px] font-sans">
-              Notifies director when usage crosses 70% threshold.
+            <p className="text-xs font-sans leading-relaxed">
+              Notifies atelier management when monthly quota reaches 70%.
             </p>
           </div>
 
           <div
-            className={`p-4 rounded-sm border ${
+            className={`p-4 rounded-xl border transition-colors ${
               percentage >= 90
-                ? "bg-red-950/30 border-red-500/40 text-red-300"
-                : "bg-brand-navy/40 border-brand-gold/15 text-brand-ivory/60"
+                ? "bg-red-500/10 border-red-500/30 text-red-300"
+                : "bg-admin-surface-raised/40 border-admin-border text-admin-text-muted"
             }`}
           >
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1.5">
               {percentage >= 90 ? (
                 <AlertTriangle className="w-4 h-4 text-red-400" />
               ) : (
-                <CheckCircle2 className="w-4 h-4 text-brand-gold/50" />
+                <CheckCircle2 className="w-4 h-4 text-admin-gold/50" />
               )}
-              <span className="text-xs font-mono uppercase tracking-wider font-semibold">
-                90% Warning
+              <span className="text-xs font-sans font-semibold text-admin-text uppercase tracking-wider">
+                90% Quota Warning
               </span>
             </div>
-            <p className="text-[11px] font-sans">
-              Warning sent to email and dashboard header banner.
+            <p className="text-xs font-sans leading-relaxed">
+              Urgent push notice to showroom director to review or raise monthly cap.
             </p>
           </div>
 
           <div
-            className={`p-4 rounded-sm border ${
+            className={`p-4 rounded-xl border transition-colors ${
               percentage >= 100
-                ? "bg-red-950/60 border-red-500 text-red-200"
-                : "bg-brand-navy/40 border-brand-gold/15 text-brand-ivory/60"
+                ? "bg-red-500/20 border-red-500 text-red-200"
+                : "bg-admin-surface-raised/40 border-admin-border text-admin-text-muted"
             }`}
           >
-            <div className="flex items-center gap-2 mb-1">
-              <Lock className="w-4 h-4 text-brand-gold" />
-              <span className="text-xs font-mono uppercase tracking-wider font-semibold">
+            <div className="flex items-center gap-2 mb-1.5">
+              <Lock className="w-4 h-4 text-admin-gold" />
+              <span className="text-xs font-sans font-semibold text-admin-text uppercase tracking-wider">
                 100% Hard Stop
               </span>
             </div>
-            <p className="text-[11px] font-sans">
-              Redirects all public visitors directly to WhatsApp & Room Planner.
+            <p className="text-xs font-sans leading-relaxed">
+              Auto-diverts clients cleanly to WhatsApp & Room Planner. Zero runaway costs.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Adjust Budget & Visitor Limits Form */}
-      <div className="p-8 rounded-sm bg-brand-navy-card border border-brand-gold/20">
-        <h3 className="font-display text-xl text-brand-ivory uppercase tracking-wider font-medium mb-1">
-          Adjust Monthly Budget & Spam Safeguards
+      {/* Adjust Ceiling Form */}
+      <div className="p-5 sm:p-6 rounded-xl bg-admin-surface border border-admin-border">
+        <h3 className="font-serif text-xl text-admin-text font-light tracking-tight mb-1">
+          Adjust Monthly Budget & Anti-Scraping Guards
         </h3>
-        <p className="text-xs font-sans text-brand-ivory/60 mb-6">
-          Changes take effect immediately across all client sessions.
+        <p className="text-xs text-admin-text-muted font-sans mb-5">
+          Modifications apply immediately to all active visitor sessions.
         </p>
 
-        <form onSubmit={handleSaveBudget} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleSaveBudget} className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <div className="space-y-2">
-            <label className="block text-xs font-mono uppercase tracking-wider text-brand-gold">
+            <label className="block text-xs font-sans font-semibold text-admin-text uppercase tracking-wider">
               Monthly Budget Ceiling (KSh)
             </label>
             <div className="relative">
-              <DollarSign className="w-4 h-4 text-brand-gold/70 absolute left-3 top-1/2 -translate-y-1/2" />
+              <span className="text-xs font-mono text-admin-text-muted absolute left-3.5 top-1/2 -translate-y-1/2">
+                KSh
+              </span>
               <input
                 type="number"
                 min="500"
                 step="500"
                 value={budgetInput}
                 onChange={(e) => setBudgetInput(Number(e.target.value))}
-                className="w-full pl-9 pr-4 py-2.5 rounded-sm bg-brand-navy border border-brand-gold/25 focus:border-brand-gold text-brand-ivory text-xs font-mono"
+                className="w-full pl-12 pr-4 py-2.5 rounded-lg bg-admin-surface-raised border border-admin-border focus:border-admin-border-gold text-admin-text text-sm font-mono tabular-nums focus:outline-none transition-colors"
               />
             </div>
-            <span className="text-[10px] font-mono text-brand-ivory/40">
-              Estimated tokens: ~{(budgetInput / 0.000075).toLocaleString()} tokens
+            <span className="text-[11px] font-sans text-admin-text-muted block">
+              Equivalent to ~{(budgetInput / 0.000075).toLocaleString()} design consultation tokens.
             </span>
           </div>
 
           <div className="space-y-2">
-            <label className="block text-xs font-mono uppercase tracking-wider text-brand-gold">
-              Per-Visitor Token Limit (Anti-bot)
+            <label className="block text-xs font-sans font-semibold text-admin-text uppercase tracking-wider">
+              Per-Visitor Token Limit (Anti-Bot)
             </label>
             <div className="relative">
-              <ShieldAlert className="w-4 h-4 text-brand-gold/70 absolute left-3 top-1/2 -translate-y-1/2" />
+              <ShieldAlert className="w-4 h-4 text-admin-gold/70 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="number"
                 min="1000"
                 step="500"
                 value={visitorLimitInput}
                 onChange={(e) => setVisitorLimitInput(Number(e.target.value))}
-                className="w-full pl-9 pr-4 py-2.5 rounded-sm bg-brand-navy border border-brand-gold/25 focus:border-brand-gold text-brand-ivory text-xs font-mono"
+                className="w-full pl-11 pr-4 py-2.5 rounded-lg bg-admin-surface-raised border border-admin-border focus:border-admin-border-gold text-admin-text text-sm font-mono tabular-nums focus:outline-none transition-colors"
               />
             </div>
-            <span className="text-[10px] font-mono text-brand-ivory/40">
-              Stops scrapers and runaway loops automatically.
+            <span className="text-[11px] font-sans text-admin-text-muted block">
+              Protects against automated scripts and runaway interactive loops.
             </span>
           </div>
 
-          <div className="md:col-span-2 flex items-center justify-between pt-2">
+          <div className="md:col-span-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2">
             {saveSuccess ? (
-              <span className="text-xs font-mono text-emerald-400 flex items-center gap-1.5">
+              <span className="text-xs font-sans font-medium text-emerald-400 flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4" />
-                <span>Ceiling settings saved successfully.</span>
+                <span>Safeguard settings updated successfully.</span>
               </span>
             ) : (
               <span />
@@ -315,69 +344,73 @@ export function AiBudgetMeter({ initialBudget, initialLogs }: AiBudgetMeterProps
             <button
               type="submit"
               disabled={isSaving}
-              className="px-6 py-2.5 rounded-sm bg-brand-gold hover:bg-brand-gold-hover text-brand-navy font-bold text-xs font-mono uppercase tracking-widest disabled:opacity-50 transition-all"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-admin-gold hover:bg-admin-gold-hover text-admin-bg font-sans font-semibold text-xs tracking-wider transition-colors disabled:opacity-50"
             >
-              {isSaving ? "Saving..." : "Save Budget Ceiling"}
+              <span>{isSaving ? "Saving..." : "Save Budget Ceiling"}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </form>
       </div>
 
       {/* Audit Log Table */}
-      <div className="p-6 rounded-sm bg-brand-navy-card border border-brand-gold/20 space-y-4">
+      <div className="p-5 sm:p-6 rounded-xl bg-admin-surface border border-admin-border space-y-4 shadow-sm">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-brand-gold" />
-            <h4 className="font-display text-lg text-brand-ivory uppercase tracking-wider">
+          <div className="flex items-center gap-2.5">
+            <Activity className="w-4 h-4 text-admin-gold" />
+            <h4 className="font-serif text-lg text-admin-text font-light tracking-tight">
               Recent AI Invocations & Token Audit
             </h4>
           </div>
-          <span className="text-[11px] font-mono text-brand-ivory/50">
-            Last {logs.length} requests
+          <span className="text-xs font-mono text-admin-text-muted">
+            Last {logs.length} interactions
           </span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono">
-            <thead>
-              <tr className="border-b border-brand-gold/15 text-[10px] text-brand-gold uppercase tracking-wider">
-                <th className="py-2.5 px-3">Timestamp</th>
-                <th className="py-2.5 px-3">Visitor Fingerprint</th>
-                <th className="py-2.5 px-3 text-right">Tokens Consumed</th>
-                <th className="py-2.5 px-3 text-right">Estimated Cost</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-brand-gold/10">
-              {logs.map((log, i) => (
-                <tr key={log.id || i} className="hover:bg-brand-navy/40">
-                  <td className="py-2.5 px-3 text-brand-ivory/60">
-                    {new Date(log.created_at).toLocaleTimeString("en-GB", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      second: "2-digit",
-                    })}
-                  </td>
-                  <td className="py-2.5 px-3 text-brand-ivory">{log.visitor_id || "Anonymous"}</td>
-                  <td className="py-2.5 px-3 text-right text-brand-gold font-bold">
-                    {log.total_tokens?.toLocaleString() || 0}
-                  </td>
-                  <td className="py-2.5 px-3 text-right text-brand-ivory">
-                    KSh {Number(log.cost_kes || 0).toFixed(3)}
-                  </td>
+        <div className="rounded-lg border border-admin-border overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs font-mono">
+              <thead>
+                <tr className="border-b border-admin-border bg-admin-surface-raised/70 text-[10px] text-admin-text-muted uppercase tracking-wider">
+                  <th className="py-2.5 px-3">Timestamp</th>
+                  <th className="py-2.5 px-3">Visitor Session</th>
+                  <th className="py-2.5 px-3 text-right">Tokens Consumed</th>
+                  <th className="py-2.5 px-3 text-right">Cost (KSh)</th>
                 </tr>
-              ))}
-              {logs.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="py-8 text-center text-brand-ivory/40">
-                    No token activity recorded yet for this billing cycle.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-admin-border/60">
+                {logs.map((log, i) => (
+                  <tr key={log.id || i} className="hover:bg-admin-surface-raised/40 transition-colors">
+                    <td className="py-2.5 px-3 text-admin-text-muted whitespace-nowrap">
+                      {new Date(log.created_at).toLocaleTimeString("en-GB", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                      })}
+                    </td>
+                    <td className="py-2.5 px-3 text-admin-text truncate max-w-[200px]">
+                      {log.visitor_id || "Anonymous"}
+                    </td>
+                    <td className="py-2.5 px-3 text-right text-admin-gold font-semibold tabular-nums">
+                      {log.total_tokens?.toLocaleString() || 0}
+                    </td>
+                    <td className="py-2.5 px-3 text-right text-admin-text tabular-nums">
+                      KSh {Number(log.cost_kes || 0).toFixed(3)}
+                    </td>
+                  </tr>
+                ))}
+                {logs.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="py-8 text-center text-admin-text-muted font-sans">
+                      No token activity recorded yet for this billing cycle.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-

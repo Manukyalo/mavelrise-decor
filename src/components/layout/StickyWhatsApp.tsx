@@ -2,12 +2,19 @@
 
 import React, { useState } from "react";
 import { useTranslations } from "next-intl";
+import { usePathname } from "next/navigation";
 import { MessageSquare, ArrowUpRight, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function StickyWhatsApp() {
+  const pathname = usePathname();
   const t = useTranslations("whatsapp");
   const [isHovered, setIsHovered] = useState(false);
+
+  // Absolute guarantee: never render floating customer WhatsApp button inside admin portal
+  if (pathname?.includes("/admin")) {
+    return null;
+  }
 
   // Read environment variable or fallback to verified Nairobi WhatsApp line
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "254712345678";

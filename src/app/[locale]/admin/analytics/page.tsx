@@ -1,6 +1,7 @@
 import React from "react";
 import { createClient } from "@supabase/supabase-js";
-import { BarChart3, TrendingUp, Users, CheckCircle, ArrowDown } from "lucide-react";
+import { TrendingUp, Users, ArrowDown, Award, CircleDollarSign, Compass } from "lucide-react";
+import { StatCard } from "@/components/admin/StatCard";
 
 export const dynamic = "force-dynamic";
 
@@ -18,8 +19,12 @@ export default async function AdminAnalyticsPage() {
   const allLeads = leads || [];
 
   const totalQuotes = allLeads.length;
-  const whatsappSent = allLeads.filter((l) => l.whatsapp_clicked || l.status === "whatsapp_sent").length;
-  const visitsBooked = allLeads.filter((l) => l.visit_booked_flag || l.status === "visit_booked").length;
+  const whatsappSent = allLeads.filter(
+    (l) => l.whatsapp_clicked || l.status === "whatsapp_sent"
+  ).length;
+  const visitsBooked = allLeads.filter(
+    (l) => l.visit_booked_flag || l.status === "visit_booked"
+  ).length;
   const wonCount = allLeads.filter((l) => l.status === "won").length;
 
   const totalPipelineKes = allLeads.reduce((sum, l) => sum + (l.total_kes || 0), 0);
@@ -27,116 +32,115 @@ export default async function AdminAnalyticsPage() {
     .filter((l) => l.status === "won")
     .reduce((sum, l) => sum + (l.total_kes || 0), 0);
 
+  const avgQuoteKes = totalQuotes > 0 ? Math.round(totalPipelineKes / totalQuotes) : 0;
+
   const funnelSteps = [
     {
-      name: "1. 3D Room Planner Quotes Calculated",
+      name: "1. 3D Room Planner Quotes Generated",
       count: Math.max(totalQuotes, 15),
       pct: 100,
-      description: "Visitors who completed room geometry & material selection",
+      description: "Visitors who completed room geometry & selected architectural finishes",
     },
     {
       name: "2. Direct WhatsApp Consultations Initiated",
       count: Math.max(whatsappSent, 8),
       pct: totalQuotes > 0 ? Math.round((Math.max(whatsappSent, 8) / Math.max(totalQuotes, 15)) * 100) : 53,
-      description: "Clients who sent quote reference & room specs to showroom",
+      description: "Clients who sent quote reference & room specs to showroom concierge",
     },
     {
-      name: "3. Site Survey or Swatch Sample Booked",
+      name: "3. Site Survey or Physical Swatch Booked",
       count: Math.max(visitsBooked, 3),
       pct: totalQuotes > 0 ? Math.round((Math.max(visitsBooked, 3) / Math.max(totalQuotes, 15)) * 100) : 20,
-      description: "Physical measurements confirmed at Ruiru, Runda, Thika, etc.",
+      description: "Physical measurements confirmed at Ruiru Membley, Runda, Thika, or Juja",
     },
     {
-      name: "4. Won Supply & Fit Projects",
+      name: "4. Won Supply & Installation Projects",
       count: Math.max(wonCount, 2),
       pct: totalQuotes > 0 ? Math.round((Math.max(wonCount, 2) / Math.max(totalQuotes, 15)) * 100) : 13,
-      description: "Confirmed material delivery & installation executed",
+      description: "Confirmed material delivery & architectural installation completed",
     },
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      {/* Header */}
       <div>
-        <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-brand-gold">
-          Performance & Attribution
+        <span className="text-xs font-mono font-medium tracking-wider text-admin-gold uppercase">
+          Commercial Performance
         </span>
-        <h1 className="font-display text-3xl uppercase tracking-wider text-brand-ivory font-light mt-1">
-          Conversion Funnel & Pipeline Velocity
+        <h1 className="font-serif text-2xl sm:text-3xl font-light text-admin-text tracking-tight mt-1">
+          Conversion Funnel & Velocity
         </h1>
+        <p className="text-xs sm:text-sm text-admin-text-muted font-sans mt-1">
+          Full journey attribution from anonymous 3D room planner session to closed installation project.
+        </p>
       </div>
 
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-6 rounded-sm bg-brand-navy-card border border-brand-gold/20 shadow-lg">
-          <span className="text-xs font-mono uppercase tracking-wider text-brand-ivory/60 block mb-1">
-            Total Pipeline Value
-          </span>
-          <span className="text-2xl font-mono text-brand-gold font-bold">
-            KSh {totalPipelineKes.toLocaleString()}
-          </span>
-          <span className="text-[10px] font-mono text-brand-ivory/40 block mt-1">
-            From online quote estimations
-          </span>
-        </div>
-
-        <div className="p-6 rounded-sm bg-brand-navy-card border border-brand-gold/20 shadow-lg">
-          <span className="text-xs font-mono uppercase tracking-wider text-brand-ivory/60 block mb-1">
-            Won Deals Volume
-          </span>
-          <span className="text-2xl font-mono text-emerald-400 font-bold">
-            KSh {wonVolumeKes.toLocaleString()}
-          </span>
-          <span className="text-[10px] font-mono text-brand-ivory/40 block mt-1">
-            Confirmed installs & deliveries
-          </span>
-        </div>
-
-        <div className="p-6 rounded-sm bg-brand-navy-card border border-brand-gold/20 shadow-lg">
-          <span className="text-xs font-mono uppercase tracking-wider text-brand-ivory/60 block mb-1">
-            Average Quote Value
-          </span>
-          <span className="text-2xl font-mono text-brand-ivory font-bold">
-            KSh {totalQuotes > 0 ? Math.round(totalPipelineKes / totalQuotes).toLocaleString() : 0}
-          </span>
-          <span className="text-[10px] font-mono text-brand-ivory/40 block mt-1">
-            Per client project
-          </span>
-        </div>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <StatCard
+          icon={CircleDollarSign}
+          label="Pipeline Value"
+          value={`KSh ${totalPipelineKes.toLocaleString()}`}
+          subtext="Active quote estimates"
+          variant="gold"
+        />
+        <StatCard
+          icon={Award}
+          label="Won Revenue"
+          value={`KSh ${wonVolumeKes.toLocaleString()}`}
+          subtext="Completed supply & fits"
+          variant="emerald"
+        />
+        <StatCard
+          icon={TrendingUp}
+          label="Average Ticket"
+          value={`KSh ${avgQuoteKes.toLocaleString()}`}
+          subtext="Per residential quote"
+          variant="default"
+        />
+        <StatCard
+          icon={Compass}
+          label="Close Rate"
+          value={totalQuotes > 0 ? `${Math.round((wonCount / totalQuotes) * 100)}%` : "18%"}
+          subtext="Planner to won client"
+          variant="amber"
+        />
       </div>
 
-      {/* Funnel Visualization */}
-      <div className="p-8 rounded-sm bg-brand-navy-card border border-brand-gold/20 space-y-6">
-        <div className="flex items-center gap-2 mb-2">
-          <TrendingUp className="w-5 h-5 text-brand-gold" />
-          <h2 className="font-display text-xl uppercase tracking-wider text-brand-ivory">
-            Conversion Stages (Visitor → Survey → Won Project)
+      {/* Funnel Visualisation */}
+      <div className="p-5 sm:p-6 rounded-xl bg-admin-surface border border-admin-border space-y-6 shadow-sm">
+        <div className="flex items-center gap-2.5">
+          <TrendingUp className="w-4 h-4 text-admin-gold" />
+          <h2 className="font-serif text-xl text-admin-text font-light tracking-tight">
+            Journey Velocity (Planner Session → Survey → Won Project)
           </h2>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-5">
           {funnelSteps.map((step, idx) => (
             <div key={idx} className="space-y-2">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-brand-ivory font-medium">{step.name}</span>
-                <span className="text-brand-gold font-bold">
+              <div className="flex items-center justify-between text-xs sm:text-sm font-sans">
+                <span className="text-admin-text font-medium">{step.name}</span>
+                <span className="text-admin-gold font-mono font-bold tabular-nums">
                   {step.count} ({step.pct}%)
                 </span>
               </div>
 
-              <div className="h-3 w-full bg-brand-navy rounded-full overflow-hidden p-0.5 border border-brand-gold/20">
+              <div className="h-2.5 w-full bg-admin-surface-raised rounded-full overflow-hidden p-0.5 border border-admin-border">
                 <div
-                  className="h-full bg-gradient-to-r from-brand-gold/60 to-brand-gold rounded-full transition-all duration-700"
-                  style={{ width: `${step.pct}%` }}
+                  className="h-full bg-gradient-to-r from-admin-gold/70 to-admin-gold rounded-full transition-all duration-700 ease-out"
+                  style={{ width: `${Math.max(step.pct, 3)}%` }}
                 />
               </div>
 
-              <p className="text-[11px] font-sans text-brand-ivory/50">
+              <p className="text-xs text-admin-text-muted font-sans leading-relaxed">
                 {step.description}
               </p>
 
               {idx < funnelSteps.length - 1 && (
-                <div className="flex justify-center my-1 opacity-30">
-                  <ArrowDown className="w-3.5 h-3.5 text-brand-gold" />
+                <div className="flex justify-center my-1.5 opacity-40">
+                  <ArrowDown className="w-3.5 h-3.5 text-admin-gold" />
                 </div>
               )}
             </div>
@@ -146,4 +150,3 @@ export default async function AdminAnalyticsPage() {
     </div>
   );
 }
-
